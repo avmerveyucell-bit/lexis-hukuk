@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lexis — Ekip Süre Takibi</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#0f1117;--surface:#181c27;--surface2:#1f2436;
@@ -224,6 +225,33 @@ tr.done-row td{opacity:.4;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+/* PASSWORD MGMT */
+.pwd-grid{display:flex;flex-direction:column;gap:10px;}
+.pwd-row{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 12px;}
+.pwd-uinfo{display:flex;align-items:center;gap:8px;flex:1;}
+.pwd-input{background:var(--surface);border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-family:"Outfit",sans-serif;font-size:13px;outline:none;width:140px;}
+.pwd-input:focus{border-color:var(--gold);}
+.pwd-status{font-size:11px;padding:2px 8px;border-radius:10px;}
+.pwd-set{background:var(--green-dim);color:var(--green);}
+.pwd-unset{background:var(--red-dim);color:var(--red);}
+/* PASSWORD MGMT */
+/* TODAY BANNER */
+.today-banner{background:linear-gradient(135deg,rgba(217,79,79,0.2),rgba(212,136,58,0.1));border:1px solid rgba(217,79,79,0.4);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
+.today-banner h3{font-family:"Cormorant Garamond",serif;font-size:18px;color:var(--red);margin-bottom:12px;}
+.today-item{background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-left:3px solid var(--red);}
+.today-item.last-day{border-left-color:var(--orange);}
+.today-item-info{flex:1;}
+.today-item-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.today-item-meta{font-size:11px;color:var(--text-mid);}
+/* DIGER ISLER FORM */
+.di-form{padding:16px 18px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end;border-bottom:1px solid var(--border);}
+.di-row2{padding:0 18px 14px;display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end;}
+/* EXPORT BTNS */
+.export-bar{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-excel{background:rgba(33,115,70,0.15);color:#4caf7d;border:1px solid rgba(76,175,125,0.3);padding:6px 13px;border-radius:6px;cursor:pointer;font-family:"Outfit",sans-serif;font-size:12px;font-weight:600;transition:all .2s;}
+.btn-excel:hover{background:#4caf7d;color:white;}
+.btn-pdf{background:rgba(217,79,79,0.12);color:var(--red);border:1px solid rgba(217,79,79,0.3);padding:6px 13px;border-radius:6px;cursor:pointer;font-family:"Outfit",sans-serif;font-size:12px;font-weight:600;transition:all .2s;}
+.btn-pdf:hover{background:var(--red);color:white;}
 
 @media(max-width:900px){.stats-row,.wgrid{grid-template-columns:1fr 1fr;}.add-form,.add-row2{grid-template-columns:1fr;}.user-cards{grid-template-columns:1fr 1fr;}}
 @media(max-width:600px){.wgrid,.user-cards{grid-template-columns:1fr;}.topbar,.content{padding:0 12px;}.content{padding:14px;}.tb-btn.hide-sm{display:none;}}
@@ -280,6 +308,18 @@ tr.done-row td{opacity:.4;}
       <div class="wiz-actions">
         <button class="btn btn-ghost" onclick="showStep('step2')">← Geri</button>
         <button class="btn btn-gold" onclick="step3Next()">Çalışma Alanını Oluştur →</button>
+      </div>
+    </div>
+
+    <!-- STEP PWD: Şifre belirleme -->
+    <div class="wiz-step" id="step_pwd">
+      <div class="step-title">3. Kullanıcı Şifreleri</div>
+      <div class="step-desc">Her kullanıcı için şifre belirleyin. <b>Şifresi olmayan kullanıcı sisteme giremez.</b></div>
+      <div class="setup-rows" id="step_pwd_rows"></div>
+      <div class="wiz-err" id="step_pwd_err"></div>
+      <div class="wiz-actions">
+        <button class="btn btn-ghost" onclick="showStep('step3')">← Geri</button>
+        <button class="btn btn-gold" onclick="stepPwdNext()">Çalışma Alanını Oluştur →</button>
       </div>
     </div>
 
@@ -345,6 +385,7 @@ tr.done-row td{opacity:.4;}
       <button class="tb-btn sync" onclick="syncNow()" title="Verileri şimdi güncelle">↻ Yenile</button>
       <button class="tb-btn hide-sm" onclick="exportJSON()">💾 Yedek</button>
       <button class="tb-btn hide-sm" onclick="importJSON()">📂 Geri Yükle</button>
+      <button class="tb-btn hide-sm" id="pwd-btn" onclick="openPwdModal()" style="display:none">🔐 Şifreler</button>
       <button class="tb-btn" onclick="logout()">↩ Çıkış</button>
     </div>
   </div>
@@ -396,6 +437,19 @@ tr.done-row td{opacity:.4;}
   </div>
 </div>
 
+<!-- Password Management Modal -->
+<div class="modal-overlay" id="pwd-modal">
+  <div class="modal" style="width:480px;">
+    <h3>🔐 Kullanıcı Şifre Yönetimi</h3>
+    <p style="font-size:12px;color:var(--text-mid);margin-bottom:16px">Her kullanıcı için şifre belirleyin. Şifresi olmayan kullanıcı sisteme giremez.</p>
+    <div class="pwd-grid" id="pwd-rows"></div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="document.getElementById('pwd-modal').classList.remove('open')">İptal</button>
+      <button class="btn btn-gold" onclick="savePwds()">💾 Şifreleri Kaydet</button>
+    </div>
+  </div>
+</div>
+
 <!-- Loading -->
 <div id="loading"><div class="loader"></div><p id="loading-msg">Yükleniyor...</p></div>
 <div id="toast"></div>
@@ -407,7 +461,7 @@ const COLORS=['#5b8af0','#4caf7d','#d4883a','#c05b9e'];
 const LS_KEY='lexis_creds_v1';
 
 // ── STATE ──
-let apiKey='',binId='',users=[],tasks=[],cu=null,tab='mine',filt='hepsi',srch='',eid=null;
+let apiKey='',binId='',users=[],tasks=[],digerIsler=[],cu=null,tab='mine',filt='hepsi',srch='',eid=null,deid=null;
 let syncTimer=null;
 
 // ── JSONBIN API ──
@@ -465,14 +519,26 @@ async function step2Next(){
 
 async function step3Next(){
   document.getElementById('step3-err').textContent='';
-  const names=['Yönetici','Avukat 2','Avukat 3','Avukat 4'].map((_,i)=>(document.getElementById('wu'+i)?.value||'').trim()).filter(Boolean);
-  if(names.length<1){document.getElementById('step3-err').textContent='⚠ En az bir isim girin';return;}
-  users=[
-    {name:names[0]||'Yönetici',role:'admin'},
-    {name:names[1]||'Avukat 2',role:'user'},
-    {name:names[2]||'Avukat 3',role:'user'},
-    {name:names[3]||'Avukat 4',role:'user'},
-  ];
+  const names=[0,1,2,3].map(i=>(document.getElementById('wu'+i)?.value||'').trim());
+  if(!names[0]){document.getElementById('step3-err').textContent='⚠ En az yönetici ismini girin';return;}
+  const defaults=['Yönetici','Avukat 2','Avukat 3','Avukat 4'];
+  const tempUsers=[0,1,2,3].map(i=>({name:names[i]||defaults[i],role:i===0?'admin':'user'}));
+  document.getElementById('step_pwd_rows').innerHTML=tempUsers.map((u,i)=>
+    '<div class="setup-row"><div class="sav" style="background:'+COLORS[i]+'22;color:'+COLORS[i]+'">'+u.name[0]+'</div>'+
+    '<span style="width:90px;font-size:13px;font-weight:500">'+u.name+'</span>'+
+    '<input class="sinput" id="wpwd'+i+'" type="password" placeholder="Şifre girin...">'+
+    '<span style="font-size:11px;color:var(--text-dim)">'+( u.role==='admin'?'👑 Yönetici':'Avukat')+'</span></div>'
+  ).join('');
+  showStep('step_pwd');
+}
+
+async function stepPwdNext(){
+  document.getElementById('step_pwd_err').textContent='';
+  const names=[0,1,2,3].map(i=>(document.getElementById('wu'+i)?.value||'').trim());
+  const pwds=[0,1,2,3].map(i=>(document.getElementById('wpwd'+i)?.value||'').trim());
+  const defaults=['Yönetici','Avukat 2','Avukat 3','Avukat 4'];
+  if(!pwds[0]){document.getElementById('step_pwd_err').textContent='⚠ Yönetici şifresi zorunludur';return;}
+  users=[0,1,2,3].map(i=>({name:names[i]||defaults[i],role:i===0?'admin':'user',password:pwds[i]||''}));
   showLoading('Çalışma alanı oluşturuluyor...');
   try{
     const initData={users,tasks:[],createdAt:new Date().toISOString()};
@@ -497,7 +563,7 @@ async function joinWorkspace(){
   showLoading('Çalışma alanına bağlanıyor...');
   try{
     const data=await readBin();
-    users=data.users||[];tasks=data.tasks||[];
+    users=data.users||[];tasks=data.tasks||[];digerIsler=data.digerIsler||[];
     saveCreds();
     hideLoading();
     enterApp();
@@ -540,6 +606,7 @@ async function syncData(){
     const data=await readBin();
     users=data.users||users;
     tasks=data.tasks||tasks;
+    digerIsler=data.digerIsler||digerIsler;
     document.getElementById('sync-indicator').innerHTML='<span class="sync-dot"></span>'+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
     return true;
   }catch(e){
@@ -548,7 +615,7 @@ async function syncData(){
   }
 }
 async function pushData(){
-  try{await writeBin({users,tasks,updatedAt:new Date().toISOString()});}catch(e){toast('⚠ Kaydetme hatası: '+e.message);}
+  try{await writeBin({users,tasks,digerIsler,updatedAt:new Date().toISOString()});}catch(e){toast('⚠ Kaydetme hatası: '+e.message);}
 }
 async function syncNow(){
   showLoading('Veriler güncelleniyor...');
@@ -601,11 +668,13 @@ async function saveNames(){
 }
 
 async function login(i){
-  if(users[i].role==='admin'){
-    const pass=prompt('🔐 Yönetici şifresi:');
-    if(pass===null)return;
-    if(pass!=='1624'){alert('⚠️ Hatalı şifre!');return;}
+  const u=users[i];
+  if(!u.password){
+    alert('⚠️ Bu hesap için şifre tanımlanmamış. Lütfen yöneticiyle iletişime geçin.');return;
   }
+  const pass=prompt('🔐 '+u.name+' — Şifrenizi girin:');
+  if(pass===null)return;
+  if(pass!==u.password){alert('⚠️ Hatalı şifre! Tekrar deneyin.');return;}
   showLoading('Veriler yükleniyor...');
   await syncData();
   hideLoading();
@@ -619,6 +688,24 @@ async function login(i){
   tab=isAdmin()?'all':'mine';
   renderTabs();renderContent();
   startAutoSync();
+  showTodayBanner();
+  // Show pwd button only for admin
+  const pBtn=document.getElementById('pwd-btn');
+  if(pBtn) pBtn.style.display=isAdmin()?'':'none';
+}
+
+function showTodayBanner(){
+  // Show today's and overdue digerIsler
+  const urgent = digerIsler.filter(d=>!d.done && diff(d.teslim_tarihi)<=0);
+  const myUrgent = isAdmin() ? urgent : urgent.filter(d=>d.atanan===cu.idx);
+  if(!myUrgent.length) return;
+  const html = '<div class="today-banner"><h3>🔔 Bugün ve Gecikmeli Diğer İşler ('+myUrgent.length+')</h3>'+
+    myUrgent.map(d=>{
+      const d2=diff(d.teslim_tarihi);
+      return '<div class="today-item '+(d2<0?'':'last-day')+'"><div class="today-item-info"><div class="today-item-name">'+d.isim+'</div><div class="today-item-meta">'+uchip(d.atanan)+' · Teslim: '+fmt(d.teslim_tarihi)+(d2<0?' · <span style="color:var(--red)">'+Math.abs(d2)+' gün geçti</span>':' · <span style="color:var(--orange)">Bugün!</span>')+'</div></div><div class="prio"><div class="pd '+d.oncelik+'"></div></div></div>';
+    }).join('')+'</div>';
+  const ca=document.getElementById('ca');
+  ca.innerHTML = html + ca.innerHTML;
 }
 function logout(){
   cu=null;if(syncTimer)clearInterval(syncTimer);
@@ -650,7 +737,11 @@ function renderTabs(){
     {id:'mine',lbl:'👤 Benim İşlerim'},
     {id:'team',lbl:'📊 Ekip Özeti'},
     {id:'approvals',lbl:'✅ Onaylar'+pendBadge()},
-  ]:[{id:'mine',lbl:'📋 Görevlerim'}];
+    {id:'diger',lbl:'📝 Diğer İşler'},
+  ]:[
+    {id:'mine',lbl:'📋 Görevlerim'},
+    {id:'diger',lbl:'📝 Diğer İşler'},
+  ];
   document.getElementById('tabs').innerHTML=atabs.map(t=>`<div class="tab ${tab===t.id?'active':''}" onclick="swTab('${t.id}')">${t.lbl}</div>`).join('');
 }
 function pendBadge(){const n=tasks.filter(t=>t.pending&&!t.done).length;return n?` <span style="background:var(--red);color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:3px">${n}</span>`:'';}
@@ -663,6 +754,7 @@ function renderContent(){
   else if(tab==='all')ca.innerHTML=renderAll();
   else if(tab==='team')ca.innerHTML=renderTeam();
   else if(tab==='approvals')ca.innerHTML=renderApprovals();
+  else if(tab==='diger')ca.innerHTML=renderDiger();
 }
 
 function statsOf(arr){
@@ -848,6 +940,199 @@ function exportCSV(){
   const csv=[h,...r].map(x=>x.map(c=>`"${c||''}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='lexis.csv';a.click();
 }
+// ── DİĞER İŞLER ──
+const DIGER_TYPES=['İhtarname Cevabı','İcra Takibi Başlatma','Dava Açma','Konu Araştırma','Sözleşme Hazırlama','Dilekçe Yazma','Müvekkil Görüşmesi','Belge Hazırlama','Arabuluculuk Başvurusu','Resmi Yazışma','Diğer'];
+
+function renderDiger(){
+  const mine = isAdmin() ? digerIsler : digerIsler.filter(d=>d.atanan===cu.idx);
+  const filtered = mine.filter(d=>{
+    if(filt==='aktif') return !d.done;
+    if(filt==='tamam') return d.done;
+    if(filt==='gecmis') return !d.done && diff(d.teslim_tarihi)<0;
+    if(filt==='bu_hafta') return !d.done && diff(d.teslim_tarihi)>=0 && diff(d.teslim_tarihi)<=7;
+    return true;
+  }).filter(d=>!srch||(d.isim||'').toLowerCase().includes(srch.toLowerCase())||(users[d.atanan]?.name||'').toLowerCase().includes(srch.toLowerCase()));
+  filtered.sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi);});
+
+  const asel = isAdmin()?'<div class="fg"><label>Kim Yapacak</label><select id="dfa">'+users.map((u,i)=>'<option value="'+i+'"'+( i===cu.idx?' selected':'')+'>'+u.name+'</option>').join('')+'</select></div>':'';
+
+  return '<div class="panel" style="margin-bottom:18px">'+
+    '<div class="ph"><div class="ph-title">➕ Yeni İş Ekle</div></div>'+
+    '<div class="di-form" style="grid-template-columns:'+(isAdmin()?'2fr 1fr 1fr 1fr 1fr':'2fr 1fr 1fr 1fr')+'">'+
+      '<div class="fg"><label>İş Adı *</label><input id="dfi" type="text" placeholder="Örn: ABC Şirketi ihtarname cevabı"></div>'+
+      '<div class="fg"><label>İş Türü</label><select id="dft">'+DIGER_TYPES.map(t=>'<option>'+t+'</option>').join('')+'</select></div>'+
+      '<div class="fg"><label>Öncelik</label><select id="dfp"><option value="acil">🔴 Acil</option><option value="yuksek">🟠 Yüksek</option><option value="orta" selected>🟡 Orta</option><option value="dusuk">🟢 Düşük</option></select></div>'+
+      asel+
+    '</div>'+
+    '<div class="di-row2">'+
+      '<div class="fg"><label>📬 Geliş Tarihi</label><input id="dfg" type="date" value="'+today()+'"></div>'+
+      '<div class="fg"><label>📅 Teslim Tarihi *</label><input id="dfd" type="date" value="'+today()+'"></div>'+
+      '<div class="fg"><label>Onay Bilgisi</label><input id="dfo" type="text" placeholder="Onay veren / şekli..."></div>'+
+      '<div class="fg"><label>Notlar</label><input id="dfn" type="text" placeholder="Açıklama..."></div>'+
+      '<div class="fg" style="flex-direction:row;align-items:flex-end;"><button class="btn btn-gold" onclick="addDiger()">➕ Ekle</button></div>'+
+    '</div>'+
+  '</div>'+
+  '<div class="panel">'+
+    '<div class="ph">'+
+      '<div class="ph-title">📝 Diğer İşler</div>'+
+      '<div class="export-bar">'+
+        '<button class="btn-excel" onclick="exportDigerExcel()">📊 Excel İndir</button>'+
+        '<button class="btn-pdf" onclick="exportDigerPDF()">📄 PDF İndir</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="exportDigerCSV()">CSV</button>'+
+      '</div>'+
+    '</div>'+
+    filHtml(false)+
+    '<div class="tw">'+digerTblHtml(filtered)+'</div>'+
+  '</div>';
+}
+
+function digerTblHtml(arr){
+  if(!arr.length) return '<div style="text-align:center;padding:40px;color:var(--text-dim)"><div style="font-size:32px;margin-bottom:8px;opacity:.3">📝</div><p>Kayıt bulunamadı</p></div>';
+  return '<table><thead><tr>'+
+    '<th>Durum</th><th>İş Adı</th><th>Tür</th><th>Geliş</th><th>Teslim</th>'+
+    (isAdmin()?'<th>Kim Yapacak</th>':'')+
+    '<th>Öncelik</th><th>Onay</th><th>Notlar</th><th></th>'+
+  '</tr></thead><tbody>'+
+  arr.map(d=>{
+    const dv=diff(d.teslim_tarihi);
+    const canDone=!d.done&&(isAdmin()||d.atanan===cu.idx);
+    return '<tr class="'+(d.done?'done-row':'')+'">'+
+      '<td>'+sbadge(dv,d.done,false)+'</td>'+
+      '<td><strong>'+d.isim+'</strong></td>'+
+      '<td style="font-size:12px;color:var(--text-mid)">'+( d.tur||'—')+'</td>'+
+      '<td style="font-size:12px;color:var(--text-mid)">'+fmt(d.gelis_tarihi)+'</td>'+
+      '<td style="font-size:12px">'+fmt(d.teslim_tarihi)+'</td>'+
+      (isAdmin()?'<td>'+uchip(d.atanan)+'</td>':'')+
+      '<td>'+prio(d.oncelik)+'</td>'+
+      '<td style="font-size:12px;color:var(--text-mid);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+( d.onay||'—')+'</td>'+
+      '<td style="font-size:12px;color:var(--text-mid);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+( d.not||'—')+'</td>'+
+      '<td><div style="display:flex;gap:4px;">'+
+        (canDone&&!d.done?'<button class="btn btn-ghost btn-sm" onclick="doneDiger('+d.id+')" style="color:var(--green);border-color:rgba(76,175,125,.3)">✓ Tamam</button>':'')+
+        (d.done?'<button class="btn btn-ghost btn-sm" onclick="undoneDiger('+d.id+')">↩</button>':'')+
+        (isAdmin()?'<button class="btn btn-ghost btn-sm" onclick="delDiger('+d.id+')" style="color:var(--red);border-color:rgba(217,79,79,.2)">🗑</button>':'')+
+      '</div></td>'+
+    '</tr>';
+  }).join('')+
+  '</tbody></table>';
+}
+
+async function addDiger(){
+  const isim=(document.getElementById('dfi')?.value||'').trim();
+  const teslim=document.getElementById('dfd')?.value;
+  if(!isim||!teslim){toast('⚠️ İş adı ve teslim tarihi zorunludur!');return;}
+  const at=isAdmin()?parseInt(document.getElementById('dfa')?.value||cu.idx):cu.idx;
+  digerIsler.push({
+    id:Date.now(),isim,
+    tur:document.getElementById('dft')?.value||'',
+    gelis_tarihi:document.getElementById('dfg')?.value||'',
+    teslim_tarihi:teslim,
+    oncelik:document.getElementById('dfp')?.value||'orta',
+    onay:(document.getElementById('dfo')?.value||'').trim(),
+    not:(document.getElementById('dfn')?.value||'').trim(),
+    atanan:at,done:false
+  });
+  showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();
+  toast('✅ '+users[at].name+' için diğer iş eklendi');
+}
+async function doneDiger(id){const d=digerIsler.find(x=>x.id===id);if(d){d.done=true;showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('✅ Tamamlandı');}}
+async function undoneDiger(id){const d=digerIsler.find(x=>x.id===id);if(d){d.done=false;showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('↩ Geri alındı');}}
+async function delDiger(id){if(!confirm('Bu kaydı silmek istediğinizden emin misiniz?'))return;digerIsler=digerIsler.filter(x=>x.id!==id);showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('🗑 Silindi');}
+
+// ── EXPORT FUNCTIONS ──
+function exportDigerExcel(){
+  const wb = XLSX.utils.book_new();
+  const headers=['İş Adı','Tür','Geliş Tarihi','Teslim Tarihi','Kim Yapacak','Öncelik','Onay Bilgisi','Notlar','Durum'];
+  const rows=digerIsler.map(d=>[
+    d.isim,d.tur||'',fmt(d.gelis_tarihi),fmt(d.teslim_tarihi),
+    users[d.atanan]?.name||'',
+    {acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'}[d.oncelik]||d.oncelik,
+    d.onay||'',d.not||'',d.done?'Tamamlandı':'Aktif'
+  ]);
+  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  // Column widths
+  ws['!cols']=[{wch:30},{wch:20},{wch:14},{wch:14},{wch:16},{wch:10},{wch:20},{wch:25},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws,'Diğer İşler');
+  // Also add dava tasks sheet
+  const headers2=['Mahkeme','Dosya No','İşlem Türü','Tebligat','Teslim','Atanan','Öncelik','Notlar','Durum'];
+  const rows2=tasks.map(t=>[t.mahkeme||'',t.dosya_no||'',t.tur||'',fmt(t.tebligat_tarihi),fmt(t.teslim_tarihi),users[t.atanan]?.name||'',{acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'}[t.oncelik]||t.oncelik,t.not||'',t.done?'Tamamlandı':t.pending?'Onay Bekliyor':'Aktif']);
+  const ws2=XLSX.utils.aoa_to_sheet([headers2,...rows2]);
+  ws2['!cols']=[{wch:25},{wch:14},{wch:25},{wch:14},{wch:14},{wch:16},{wch:10},{wch:25},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Dava İşleri');
+  XLSX.writeFile(wb,'lexis-isler-'+new Date().toISOString().split('T')[0]+'.xlsx');
+  toast('📊 Excel indirildi');
+}
+
+function exportDigerPDF(){
+  const win=window.open('','_blank');
+  const rows=digerIsler.map(d=>'<tr>'+
+    '<td>'+d.isim+'</td><td>'+(d.tur||'—')+'</td><td>'+fmt(d.gelis_tarihi)+'</td><td>'+fmt(d.teslim_tarihi)+'</td>'+
+    '<td>'+(users[d.atanan]?.name||'—')+'</td><td>'+({acil:'🔴 Acil',yuksek:'🟠 Yüksek',orta:'🟡 Orta',dusuk:'🟢 Düşük'}[d.oncelik]||d.oncelik)+'</td>'+
+    '<td>'+(d.onay||'—')+'</td><td>'+(d.not||'—')+'</td>'+
+    '<td style="color:'+(d.done?'green':'#c0392b')+'">'+(d.done?'✓ Tamamlandı':'Aktif')+'</td>'+
+  '</tr>').join('');
+  win.document.write('<html><head><title>Diğer İşler — Lexis</title><style>'+
+    'body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}'+
+    'h2{color:#1a1a2e;border-bottom:2px solid #c9a84c;padding-bottom:8px;}'+
+    'table{width:100%;border-collapse:collapse;margin-top:12px;}'+
+    'th{background:#1a1a2e;color:white;padding:8px 6px;text-align:left;font-size:10px;}'+
+    'td{padding:7px 6px;border-bottom:1px solid #eee;vertical-align:top;}'+
+    'tr:nth-child(even)td{background:#f9f9f9;}'+
+    '@media print{body{padding:0}}'+
+  '</style></head><body>'+
+    '<h2>⚖ Lexis — Yapılacak Diğer İşler</h2>'+
+    '<p style="color:#666;font-size:11px">Tarih: '+new Date().toLocaleDateString('tr-TR')+' | Toplam: '+digerIsler.length+' kayıt</p>'+
+    '<table><thead><tr><th>İş Adı</th><th>Tür</th><th>Geliş</th><th>Teslim</th><th>Kim</th><th>Öncelik</th><th>Onay</th><th>Not</th><th>Durum</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table>'+
+  '</body></html>');
+  win.document.close();
+  setTimeout(()=>win.print(),500);
+}
+
+function exportDigerCSV(){
+  const h=['İş Adı','Tür','Geliş Tarihi','Teslim Tarihi','Kim Yapacak','Öncelik','Onay Bilgisi','Notlar','Durum'];
+  const r=digerIsler.map(d=>[d.isim,d.tur||'',fmt(d.gelis_tarihi),fmt(d.teslim_tarihi),users[d.atanan]?.name||'',d.oncelik,d.onay||'',d.not||'',d.done?'Tamamlandı':'Aktif']);
+  const csv=[h,...r].map(x=>x.map(c=>'"'+(c||'')+'"').join(',')).join('
+');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);a.download='diger-isler.csv';a.click();
+}
+
+function exportCSV(){
+  const h=['Mahkeme','Dosya No','İşlem Türü','Tebligat Tarihi','Teslim Tarihi','Atanan','Öncelik','Notlar','Durum'];
+  const r=tasks.map(t=>[t.mahkeme||'',t.dosya_no||'',t.tur||'',fmt(t.tebligat_tarihi),fmt(t.teslim_tarihi),users[t.atanan]?.name||'',{acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'}[t.oncelik]||t.oncelik,t.not||'',t.done?'Tamamlandı':t.pending?'Onay Bekliyor':'Aktif']);
+  const csv=[h,...r].map(x=>x.map(c=>'"'+(c||'')+'"').join(',')).join('
+');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);a.download='dava-isler.csv';a.click();
+}
+
+// ── ŞİFRE YÖNETİMİ ──
+function openPwdModal(){
+  document.getElementById('pwd-rows').innerHTML=users.map((u,i)=>
+    '<div class="pwd-row">'+
+    '<div class="pwd-uinfo"><div class="ucd" style="width:28px;height:28px;background:'+COLORS[i]+'33;color:'+COLORS[i]+'">'+u.name[0]+'</div>'+
+    '<span style="font-size:13px;font-weight:600">'+u.name+'</span>'+
+    (u.role==='admin'?'<span class="badge-admin">Admin</span>':'')+
+    '</div>'+
+    '<input class="pwd-input" id="pfield'+i+'" type="password" placeholder="Yeni şifre..." value="'+(u.password||'')+'">'+
+    '<span class="pwd-status '+(u.password?'pwd-set':'pwd-unset')+'">'+( u.password?'✓ Şifreli':'✗ Şifresiz')+'</span>'+
+    '</div>'
+  ).join('');
+  document.getElementById('pwd-modal').classList.add('open');
+}
+
+async function savePwds(){
+  let changed=false;
+  users.forEach((u,i)=>{
+    const v=(document.getElementById('pfield'+i)?.value||'').trim();
+    if(v!==u.password){u.password=v;changed=true;}
+  });
+  if(!changed){document.getElementById('pwd-modal').classList.remove('open');return;}
+  showLoading('Şifreler kaydediliyor...');
+  await pushData();
+  hideLoading();
+  document.getElementById('pwd-modal').classList.remove('open');
+  toast('✅ Şifreler güncellendi');
+}
+
 function exportJSON(){
   const data=JSON.stringify({tasks,users,exportedAt:new Date().toISOString()},null,2);
   const a=document.createElement('a');
@@ -877,7 +1162,7 @@ function importJSON(){
 }
 
 // Modal close on overlay
-['names-modal','share-modal','edit-modal'].forEach(id=>{
+['names-modal','share-modal','edit-modal','pwd-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
 
