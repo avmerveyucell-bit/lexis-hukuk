@@ -1091,16 +1091,14 @@ function exportDigerPDF(){
 function exportDigerCSV(){
   const h=['İş Adı','Tür','Geliş Tarihi','Teslim Tarihi','Kim Yapacak','Öncelik','Onay Bilgisi','Notlar','Durum'];
   const r=digerIsler.map(d=>[d.isim,d.tur||'',fmt(d.gelis_tarihi),fmt(d.teslim_tarihi),users[d.atanan]?.name||'',d.oncelik,d.onay||'',d.not||'',d.done?'Tamamlandı':'Aktif']);
-  const csv=[h,...r].map(x=>x.map(c=>'"'+(c||'')+'"').join(',')).join('
-');
+  const csv=[h,...r].map(x=>x.map(c=>'"'+(c||'')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);a.download='diger-isler.csv';a.click();
 }
 
 function exportCSV(){
   const h=['Mahkeme','Dosya No','İşlem Türü','Tebligat Tarihi','Teslim Tarihi','Atanan','Öncelik','Notlar','Durum'];
   const r=tasks.map(t=>[t.mahkeme||'',t.dosya_no||'',t.tur||'',fmt(t.tebligat_tarihi),fmt(t.teslim_tarihi),users[t.atanan]?.name||'',{acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'}[t.oncelik]||t.oncelik,t.not||'',t.done?'Tamamlandı':t.pending?'Onay Bekliyor':'Aktif']);
-  const csv=[h,...r].map(x=>x.map(c=>'"'+(c||'')+'"').join(',')).join('
-');
+  const csv=[h,...r].map(x=>x.map(c=>'"'+(c||'')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);a.download='dava-isler.csv';a.click();
 }
 
