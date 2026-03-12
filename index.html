@@ -455,7 +455,7 @@ tr.done-row td{opacity:.4;}
 <div class="modal-overlay" id="pwd-modal">
   <div class="modal" style="width:480px;">
     <h3>🔐 Kullanıcı Şifre Yönetimi</h3>
-    <p style="font-size:12px;color:var(--text-mid);margin-bottom:16px">Her kullanıcı için şifre belirleyin. Şifresi olmayan kullanıcı sisteme giremez.</p>
+    <p style="font-size:12px;color:var(--text-mid);margin-bottom:16px">Şifreler <b style="color:var(--gold)">SHA-256</b> ile şifrelenip saklanır. Boş bıraktığınız kullanıcının şifresi değişmez.</p>
     <div class="pwd-grid" id="pwd-rows"></div>
     <div class="modal-actions" style="margin-top:20px;">
       <button class="btn btn-ghost" onclick="document.getElementById('pwd-modal').classList.remove('open')">İptal</button>
@@ -504,6 +504,14 @@ function hideLoading(){document.getElementById('loading').style.display='none';}
 function toast(m,dur){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur||2800);}
 
 // ── CREDENTIALS ──
+async function hashPwd(pwd){
+  if(!pwd) return '';
+  const msgBuffer=new TextEncoder().encode(pwd);
+  const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);
+  const hashArray=Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
 function saveCreds(){localStorage.setItem(LS_KEY,JSON.stringify({apiKey,binId}));}
 function loadCreds(){try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'{}');apiKey=d.apiKey||'';binId=d.binId||'';}catch(e){}}
 function getShareCode(){return btoa(encodeURIComponent(apiKey+'|||'+binId));}
@@ -552,7 +560,8 @@ async function stepPwdNext(){
   const pwds=[0,1,2,3].map(i=>(document.getElementById('wpwd'+i)?.value||'').trim());
   const defaults=['Yönetici','Avukat 2','Avukat 3','Avukat 4'];
   if(!pwds[0]){document.getElementById('step_pwd_err').textContent='⚠ Yönetici şifresi zorunludur';return;}
-  users=[0,1,2,3].map(i=>({name:names[i]||defaults[i],role:i===0?'admin':'user',password:pwds[i]||''}));
+  const hashed=await Promise.all([0,1,2,3].map(i=>hashPwd(pwds[i])));
+  users=[0,1,2,3].map(i=>({name:names[i]||defaults[i],role:i===0?'admin':'user',password:hashed[i]||''}));
   showLoading('Çalışma alanı oluşturuluyor...');
   try{
     const initData={users,tasks:[],createdAt:new Date().toISOString()};
@@ -688,7 +697,8 @@ async function login(i){
   }
   const pass=prompt('🔐 '+u.name+' — Şifrenizi girin:');
   if(pass===null)return;
-  if(pass!==u.password){alert('⚠️ Hatalı şifre! Tekrar deneyin.');return;}
+  const hashed=await hashPwd(pass);
+  if(hashed!==u.password){alert('⚠️ Hatalı şifre! Tekrar deneyin.');return;}
   showLoading('Veriler yükleniyor...');
   await syncData();
   hideLoading();
@@ -1390,25 +1400,29 @@ function openPwdModal(){
     '<span style="font-size:13px;font-weight:600">'+u.name+'</span>'+
     (u.role==='admin'?'<span class="badge-admin">Admin</span>':'')+
     '</div>'+
-    '<input class="pwd-input" id="pfield'+i+'" type="password" placeholder="Yeni şifre..." value="'+(u.password||'')+'">'+
-    '<span class="pwd-status '+(u.password?'pwd-set':'pwd-unset')+'">'+( u.password?'✓ Şifreli':'✗ Şifresiz')+'</span>'+
+    '<input class="pwd-input" id="pfield'+i+'" type="password" placeholder="Yeni şifre girin...">'+
+    '<span class="pwd-status '+(u.password?'pwd-set':'pwd-unset')+'">'+(u.password?'✓ Şifreli':'✗ Şifresiz')+'</span>'+
     '</div>'
   ).join('');
   document.getElementById('pwd-modal').classList.add('open');
 }
 
 async function savePwds(){
+  // Only hash fields that have been changed (non-empty new input)
   let changed=false;
-  users.forEach((u,i)=>{
-    const v=(document.getElementById('pfield'+i)?.value||'').trim();
-    if(v!==u.password){u.password=v;changed=true;}
-  });
-  if(!changed){document.getElementById('pwd-modal').classList.remove('open');return;}
+  const fields=[0,1,2,3].map(i=>(document.getElementById('pfield'+i)?.value||'').trim());
+  for(let i=0;i<users.length;i++){
+    const v=fields[i];
+    if(v==='') continue; // empty = keep existing
+    const hashed=await hashPwd(v);
+    if(hashed!==users[i].password){users[i].password=hashed;changed=true;}
+  }
+  if(!changed){document.getElementById('pwd-modal').classList.remove('open');toast('ℹ️ Değişiklik yapılmadı');return;}
   showLoading('Şifreler kaydediliyor...');
   await pushData();
   hideLoading();
   document.getElementById('pwd-modal').classList.remove('open');
-  toast('✅ Şifreler güncellendi');
+  toast('✅ Şifreler güncellendi ve şifrelendi');
 }
 
 function exportJSON(){
