@@ -235,20 +235,6 @@ tr.done-row td{opacity:.4;}
 .pwd-set{background:var(--green-dim);color:var(--green);}
 .pwd-unset{background:var(--red-dim);color:var(--red);}
 /* PASSWORD MGMT */
-/* RAPOR */
-.rapor-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:18px;}
-.rapor-title{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);margin-bottom:16px;}
-.rapor-filters{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
-.rapor-checkrow{display:flex;gap:16px;margin-bottom:16px;align-items:center;}
-.rcheck{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
-.rcheck input{width:16px;height:16px;accent-color:var(--gold);}
-.rapor-preview{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:14px;max-height:400px;overflow-y:auto;}
-.rapor-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
-.rtable{width:100%;border-collapse:collapse;font-size:12px;}
-.rtable th{padding:7px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);background:var(--surface);border-bottom:1px solid var(--border);}
-.rtable td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
-.rapor-section-title{font-size:13px;font-weight:700;color:var(--gold);padding:10px 0 6px;margin-top:8px;border-bottom:1px solid var(--border2);margin-bottom:6px;}
-/* RAPOR */
 /* TODAY BANNER */
 .today-banner{background:linear-gradient(135deg,rgba(217,79,79,0.2),rgba(212,136,58,0.1));border:1px solid rgba(217,79,79,0.4);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
 .today-banner h3{font-family:"Cormorant Garamond",serif;font-size:18px;color:var(--red);margin-bottom:12px;}
@@ -455,11 +441,32 @@ tr.done-row td{opacity:.4;}
 <div class="modal-overlay" id="pwd-modal">
   <div class="modal" style="width:480px;">
     <h3>🔐 Kullanıcı Şifre Yönetimi</h3>
-    <p style="font-size:12px;color:var(--text-mid);margin-bottom:16px">Şifreler <b style="color:var(--gold)">SHA-256</b> ile şifrelenip saklanır. Boş bıraktığınız kullanıcının şifresi değişmez.</p>
+    <p style="font-size:12px;color:var(--text-mid);margin-bottom:16px">Her kullanıcı için şifre belirleyin. Şifresi olmayan kullanıcı sisteme giremez.</p>
     <div class="pwd-grid" id="pwd-rows"></div>
     <div class="modal-actions" style="margin-top:20px;">
       <button class="btn btn-ghost" onclick="document.getElementById('pwd-modal').classList.remove('open')">İptal</button>
       <button class="btn btn-gold" onclick="savePwds()">💾 Şifreleri Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Diğer İşler Düzenle Modal -->
+<div class="modal-overlay" id="diger-edit-modal">
+  <div class="modal">
+    <h3>✏️ Diğer İşi Düzenle</h3>
+    <div class="egrid">
+      <div class="fg efull"><label>İş Adı *</label><input id="dei" type="text" placeholder="İş adı..."></div>
+      <div class="fg"><label>İş Türü</label><select id="det"></select></div>
+      <div class="fg"><label>Öncelik</label><select id="dep"><option value="acil">🔴 Acil</option><option value="yuksek">🟠 Yüksek</option><option value="orta">🟡 Orta</option><option value="dusuk">🟢 Düşük</option></select></div>
+      <div class="fg"><label>Geliş Tarihi</label><input id="deg" type="date"></div>
+      <div class="fg"><label>Teslim Tarihi *</label><input id="ded" type="date"></div>
+      <div class="fg"><label>Kim Yapacak</label><select id="dea"></select></div>
+      <div class="fg"><label>Onay Bilgisi</label><input id="deo" type="text"></div>
+      <div class="fg efull"><label>Notlar</label><input id="den" type="text"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditDiger()">İptal</button>
+      <button class="btn btn-gold" onclick="saveEditDiger()">💾 Kaydet</button>
     </div>
   </div>
 </div>
@@ -504,14 +511,6 @@ function hideLoading(){document.getElementById('loading').style.display='none';}
 function toast(m,dur){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur||2800);}
 
 // ── CREDENTIALS ──
-async function hashPwd(pwd){
-  if(!pwd) return '';
-  const msgBuffer=new TextEncoder().encode(pwd);
-  const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);
-  const hashArray=Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
 function saveCreds(){localStorage.setItem(LS_KEY,JSON.stringify({apiKey,binId}));}
 function loadCreds(){try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'{}');apiKey=d.apiKey||'';binId=d.binId||'';}catch(e){}}
 function getShareCode(){return btoa(encodeURIComponent(apiKey+'|||'+binId));}
@@ -560,8 +559,7 @@ async function stepPwdNext(){
   const pwds=[0,1,2,3].map(i=>(document.getElementById('wpwd'+i)?.value||'').trim());
   const defaults=['Yönetici','Avukat 2','Avukat 3','Avukat 4'];
   if(!pwds[0]){document.getElementById('step_pwd_err').textContent='⚠ Yönetici şifresi zorunludur';return;}
-  const hashed=await Promise.all([0,1,2,3].map(i=>hashPwd(pwds[i])));
-  users=[0,1,2,3].map(i=>({name:names[i]||defaults[i],role:i===0?'admin':'user',password:hashed[i]||''}));
+  users=[0,1,2,3].map(i=>({name:names[i]||defaults[i],role:i===0?'admin':'user',password:pwds[i]||''}));
   showLoading('Çalışma alanı oluşturuluyor...');
   try{
     const initData={users,tasks:[],createdAt:new Date().toISOString()};
@@ -651,7 +649,7 @@ function startAutoSync(){
   if(syncTimer)clearInterval(syncTimer);
   syncTimer=setInterval(async()=>{
     const ok=await syncData();
-    if(ok&&cu)renderContent();
+    if(ok&&cu&&!document.activeElement?.matches("input,select,textarea"))renderContent();
   },30000); // every 30s
 }
 
@@ -697,8 +695,7 @@ async function login(i){
   }
   const pass=prompt('🔐 '+u.name+' — Şifrenizi girin:');
   if(pass===null)return;
-  const hashed=await hashPwd(pass);
-  if(hashed!==u.password){alert('⚠️ Hatalı şifre! Tekrar deneyin.');return;}
+  if(pass!==u.password){alert('⚠️ Hatalı şifre! Tekrar deneyin.');return;}
   showLoading('Veriler yükleniyor...');
   await syncData();
   hideLoading();
@@ -709,7 +706,7 @@ async function login(i){
   av.textContent=(cu.name||'?')[0];av.style.background=COLORS[i]+'33';av.style.color=COLORS[i];
   document.getElementById('tname').textContent=cu.name;
   document.getElementById('tbadge').innerHTML=isAdmin()?'<span class="badge-admin" style="margin-left:4px">Admin</span>':'';
-  tab=isAdmin()?'all':'mine';
+  tab='all';
   renderTabs();renderContent();
   startAutoSync();
   showTodayBanner();
@@ -762,11 +759,9 @@ function renderTabs(){
     {id:'team',lbl:'📊 Ekip Özeti'},
     {id:'approvals',lbl:'✅ Onaylar'+pendBadge()},
     {id:'diger',lbl:'📝 Diğer İşler'},
-    {id:'rapor',lbl:'📈 Raporlar'},
   ]:[
-    {id:'mine',lbl:'📋 Görevlerim'},
+    {id:'all',lbl:'📋 Tüm İşler'},{id:'mine',lbl:'👤 Benim İşlerim'},
     {id:'diger',lbl:'📝 Diğer İşler'},
-    {id:'rapor',lbl:'📈 Raporlar'},
   ];
   document.getElementById('tabs').innerHTML=atabs.map(t=>`<div class="tab ${tab===t.id?'active':''}" onclick="swTab('${t.id}')">${t.lbl}</div>`).join('');
 }
@@ -781,7 +776,6 @@ function renderContent(){
   else if(tab==='team')ca.innerHTML=renderTeam();
   else if(tab==='approvals')ca.innerHTML=renderApprovals();
   else if(tab==='diger')ca.innerHTML=renderDiger();
-  else if(tab==='rapor')ca.innerHTML=renderRapor();
 }
 
 function statsOf(arr){
@@ -882,16 +876,15 @@ function renderMine(){
   </div>`;
 }
 function renderAll(){
-  return`${urgHtml(tasks)}${statsHtml(statsOf(tasks))}${addFormHtml(true)}
+  const digerHtml=digerIsler.length?`<div class="panel" style="margin-top:18px">
+    <div class="ph"><div class="ph-title">📝 Diğer İşler (${digerIsler.filter(d=>!d.done).length} aktif)</div></div>
+    <div class="tw">${digerTblHtml(digerIsler.slice().sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi);}))}</div>
+  </div>`:'';
+  return`${urgHtml(tasks)}${statsHtml(statsOf(tasks))}${addFormHtml(isAdmin())}
   <div class="panel">
-    <div class="ph"><div class="ph-title">📋 Tüm Ekip İşleri</div>
-      <div class="export-bar">
-        <button class="btn-excel" onclick="exportDavaExcel()">📊 Excel</button>
-        <button class="btn-pdf" onclick="exportDavaPDF()">📄 PDF</button>
-      </div>
-    </div>
+    <div class="ph"><div class="ph-title">📋 Tüm Ekip Dava İşleri</div><button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button></div>
     ${filHtml(true)}<div class="tw">${tblHtml(sortT(applyFil(tasks)),true)}</div>
-  </div>`;
+  </div>${digerHtml}`;
 }
 function renderTeam(){
   const cards=users.map((u,i)=>{
@@ -972,269 +965,11 @@ function exportCSV(){
   const csv=[h,...r].map(x=>x.map(c=>`"${c||''}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='lexis.csv';a.click();
 }
-
-// ── RAPORLAR ──
-function renderRapor(){
-  const today2=today();
-  // Default: this month
-  const y=new Date().getFullYear(), m=String(new Date().getMonth()+1).padStart(2,'0');
-  const defStart=y+'-'+m+'-01';
-  const defEnd=today2;
-
-  const userOpts=isAdmin()
-    ?'<option value="ekip">Tüm Ekip</option>'+users.map((u,i)=>'<option value="'+i+'">'+u.name+'</option>').join('')
-    :'<option value="'+cu.idx+'">'+cu.name+'</option>';
-
-  return `<div class="rapor-panel">
-    <div class="rapor-title">📈 Rapor Oluştur</div>
-    <div class="rapor-filters">
-      <div class="fg"><label>Başlangıç Tarihi</label><input class="fg input" id="rstart" type="date" value="${defStart}" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:100%"></div>
-      <div class="fg"><label>Bitiş Tarihi</label><input class="fg input" id="rend" type="date" value="${defEnd}" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:100%"></div>
-      <div class="fg"><label>Kişi / Ekip</label><select id="rperson" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:100%">${userOpts}</select></div>
-      <div class="fg"><label>Tarih Baz Al</label><select id="rdatetype" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:100%">
-        <option value="teslim">Teslim Tarihi</option>
-        <option value="tebligat">Tebligat/Geliş Tarihi</option>
-      </select></div>
-    </div>
-    <div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-mid);margin-bottom:8px">Dahil Edilecek İşler</div>
-      <div class="rapor-checkrow">
-        <label class="rcheck"><input type="checkbox" id="rincDava" checked> 📋 Dava Dosyaları</label>
-        <label class="rcheck"><input type="checkbox" id="rincDiger" checked> 📝 Diğer İşler</label>
-      </div>
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-mid);margin-bottom:8px">Durum Filtresi</div>
-      <div class="rapor-checkrow">
-        <label class="rcheck"><input type="checkbox" id="rincAktif" checked> 🔴 Aktif / Bekleyen</label>
-        <label class="rcheck"><input type="checkbox" id="rincTamam" checked> ✅ Tamamlananlar</label>
-      </div>
-    </div>
-    <div class="rapor-actions">
-      <button class="btn btn-gold" onclick="previewRapor()">👁 Önizle</button>
-      <button class="btn-excel" onclick="exportRaporExcel()" id="rbtn-excel" style="display:none">📊 Excel İndir</button>
-      <button class="btn-pdf" onclick="exportRaporPDF()" id="rbtn-pdf" style="display:none">📄 PDF İndir</button>
-    </div>
-    <div id="rapor-preview" class="rapor-preview" style="display:none"></div>
-  </div>`;
-}
-
-function getRaporData(){
-  const start=document.getElementById('rstart')?.value;
-  const end=document.getElementById('rend')?.value;
-  const person=document.getElementById('rperson')?.value;
-  const dateType=document.getElementById('rdatetype')?.value||'teslim';
-  const incDava=document.getElementById('rincDava')?.checked;
-  const incDiger=document.getElementById('rincDiger')?.checked;
-  const incAktif=document.getElementById('rincAktif')?.checked;
-  const incTamam=document.getElementById('rincTamam')?.checked;
-
-  function inRange(dateStr){
-    if(!dateStr) return false;
-    return dateStr>=start && dateStr<=end;
-  }
-
-  let davaRows=[], digerRows=[];
-
-  if(incDava){
-    let arr = person==='ekip' ? tasks : tasks.filter(t=>t.atanan===parseInt(person));
-    arr = arr.filter(t=>{
-      const d = dateType==='teslim' ? t.teslim_tarihi : t.tebligat_tarihi;
-      return inRange(d);
-    });
-    if(!incAktif) arr=arr.filter(t=>t.done);
-    if(!incTamam) arr=arr.filter(t=>!t.done);
-    davaRows=arr;
-  }
-
-  if(incDiger){
-    let arr = person==='ekip' ? digerIsler : digerIsler.filter(d=>d.atanan===parseInt(person));
-    arr = arr.filter(d=>{
-      const dt = dateType==='teslim' ? d.teslim_tarihi : d.gelis_tarihi;
-      return inRange(dt);
-    });
-    if(!incAktif) arr=arr.filter(d=>d.done);
-    if(!incTamam) arr=arr.filter(d=>!d.done);
-    digerRows=arr;
-  }
-
-  return {davaRows, digerRows, start, end, person, dateType};
-}
-
-function previewRapor(){
-  const {davaRows,digerRows,start,end,person}=getRaporData();
-  const personName = person==='ekip'?'Tüm Ekip':(users[parseInt(person)]?.name||'');
-  const total=davaRows.length+digerRows.length;
-
-  if(total===0){
-    document.getElementById('rapor-preview').style.display='block';
-    document.getElementById('rapor-preview').innerHTML='<div style="text-align:center;padding:24px;color:var(--text-dim)">Bu kriterlere uygun kayıt bulunamadı.</div>';
-    document.getElementById('rbtn-excel').style.display='none';
-    document.getElementById('rbtn-pdf').style.display='none';
-    return;
-  }
-
-  let html='<div style="font-size:12px;color:var(--text-mid);margin-bottom:10px">'+
-    '📅 '+fmt(start)+' — '+fmt(end)+' &nbsp;|&nbsp; 👤 '+personName+' &nbsp;|&nbsp; Toplam: <b style="color:var(--text)">'+total+' kayıt</b></div>';
-
-  if(davaRows.length){
-    html+='<div class="rapor-section-title">📋 Dava Dosyaları ('+davaRows.length+')</div>';
-    html+='<table class="rtable"><thead><tr><th>Mahkeme</th><th>Dosya No</th><th>İşlem Türü</th><th>Teslim</th><th>Atanan</th><th>Durum</th></tr></thead><tbody>';
-    davaRows.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).forEach(t=>{
-      html+='<tr><td>'+( t.mahkeme||'—')+'</td><td style="color:var(--text-mid)">'+( t.dosya_no||'—')+'</td>'+
-        '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+( t.tur||'—')+'</td>'+
-        '<td>'+fmt(t.teslim_tarihi)+'</td><td>'+(users[t.atanan]?.name||'—')+'</td>'+
-        '<td><span class="sb '+(t.done?'tamam':t.pending?'onay':'normal')+'">'+(t.done?'✓ Tamam':t.pending?'Onay Bek.':'Aktif')+'</span></td></tr>';
-    });
-    html+='</tbody></table>';
-  }
-
-  if(digerRows.length){
-    html+='<div class="rapor-section-title" style="margin-top:14px">📝 Diğer İşler ('+digerRows.length+')</div>';
-    html+='<table class="rtable"><thead><tr><th>İş Adı</th><th>Tür</th><th>Geliş</th><th>Teslim</th><th>Kim</th><th>Durum</th></tr></thead><tbody>';
-    digerRows.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).forEach(d=>{
-      html+='<tr><td>'+d.isim+'</td><td style="color:var(--text-mid)">'+( d.tur||'—')+'</td>'+
-        '<td style="color:var(--text-mid)">'+fmt(d.gelis_tarihi)+'</td><td>'+fmt(d.teslim_tarihi)+'</td>'+
-        '<td>'+(users[d.atanan]?.name||'—')+'</td>'+
-        '<td><span class="sb '+(d.done?'tamam':'normal')+'">'+(d.done?'✓ Tamam':'Aktif')+'</span></td></tr>';
-    });
-    html+='</tbody></table>';
-  }
-
-  document.getElementById('rapor-preview').style.display='block';
-  document.getElementById('rapor-preview').innerHTML=html;
-  document.getElementById('rbtn-excel').style.display='';
-  document.getElementById('rbtn-pdf').style.display='';
-}
-
-function exportRaporExcel(){
-  const {davaRows,digerRows,start,end,person}=getRaporData();
-  const personName=person==='ekip'?'Tüm Ekip':(users[parseInt(person)]?.name||'');
-  const wb=XLSX.utils.book_new();
-
-  if(davaRows.length){
-    const h=['Mahkeme','Dosya No','İşlem Türü','Tebligat','Teslim','Atanan','Öncelik','Notlar','Durum'];
-    const rows=davaRows.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).map(t=>[
-      t.mahkeme||'',t.dosya_no||'',t.tur||'',fmt(t.tebligat_tarihi),fmt(t.teslim_tarihi),
-      users[t.atanan]?.name||'',{acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'}[t.oncelik]||'',
-      t.not||'',t.done?'Tamamlandı':t.pending?'Onay Bekliyor':'Aktif'
-    ]);
-    const ws=XLSX.utils.aoa_to_sheet([h,...rows]);
-    ws['!cols']=[{wch:28},{wch:14},{wch:26},{wch:13},{wch:13},{wch:16},{wch:10},{wch:22},{wch:14}];
-    XLSX.utils.book_append_sheet(wb,ws,'Dava Dosyaları');
-  }
-
-  if(digerRows.length){
-    const h=['İş Adı','Tür','Geliş Tarihi','Teslim Tarihi','Kim','Öncelik','Onay Bilgisi','Notlar','Durum'];
-    const rows=digerRows.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).map(d=>[
-      d.isim,d.tur||'',fmt(d.gelis_tarihi),fmt(d.teslim_tarihi),
-      users[d.atanan]?.name||'',{acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'}[d.oncelik]||'',
-      d.onay||'',d.not||'',d.done?'Tamamlandı':'Aktif'
-    ]);
-    const ws=XLSX.utils.aoa_to_sheet([h,...rows]);
-    ws['!cols']=[{wch:30},{wch:20},{wch:13},{wch:13},{wch:16},{wch:10},{wch:20},{wch:22},{wch:12}];
-    XLSX.utils.book_append_sheet(wb,ws,'Diğer İşler');
-  }
-
-  const fname='lexis-rapor-'+personName.replace(/\s/g,'-')+'-'+start+'-'+end+'.xlsx';
-  XLSX.writeFile(wb,fname);
-  toast('📊 Excel raporu indirildi');
-}
-
-function exportRaporPDF(){
-  const {davaRows,digerRows,start,end,person}=getRaporData();
-  const personName=person==='ekip'?'Tüm Ekip':(users[parseInt(person)]?.name||'');
-  const win=window.open('','_blank');
-
-  let davaHtml='', digerHtml='';
-  if(davaRows.length){
-    const rows=davaRows.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).map(t=>
-      '<tr><td>'+( t.mahkeme||'—')+'</td><td>'+( t.dosya_no||'—')+'</td><td>'+( t.tur||'—')+'</td>'+
-      '<td>'+fmt(t.tebligat_tarihi)+'</td><td>'+fmt(t.teslim_tarihi)+'</td>'+
-      '<td>'+(users[t.atanan]?.name||'—')+'</td>'+
-      '<td style="color:'+(t.done?'green':'#c0392b')+'">'+(t.done?'✓ Tamam':t.pending?'Onay Bek.':'Aktif')+'</td></tr>'
-    ).join('');
-    davaHtml='<h3 style="color:#1a1a2e;margin:18px 0 8px;font-size:13px">📋 DAVA DOSYALARI ('+davaRows.length+')</h3>'+
-      '<table><thead><tr><th>Mahkeme</th><th>Dosya No</th><th>İşlem Türü</th><th>Tebligat</th><th>Teslim</th><th>Atanan</th><th>Durum</th></tr></thead><tbody>'+rows+'</tbody></table>';
-  }
-  if(digerRows.length){
-    const rows=digerRows.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).map(d=>
-      '<tr><td>'+d.isim+'</td><td>'+( d.tur||'—')+'</td><td>'+fmt(d.gelis_tarihi)+'</td>'+
-      '<td>'+fmt(d.teslim_tarihi)+'</td><td>'+(users[d.atanan]?.name||'—')+'</td>'+
-      '<td style="color:'+(d.done?'green':'#c0392b')+'">'+(d.done?'✓ Tamam':'Aktif')+'</td></tr>'
-    ).join('');
-    digerHtml='<h3 style="color:#1a1a2e;margin:18px 0 8px;font-size:13px">📝 DİĞER İŞLER ('+digerRows.length+')</h3>'+
-      '<table><thead><tr><th>İş Adı</th><th>Tür</th><th>Geliş</th><th>Teslim</th><th>Kim</th><th>Durum</th></tr></thead><tbody>'+rows+'</tbody></table>';
-  }
-
-  win.document.write('<html><head><title>Lexis Raporu</title><style>'+
-    'body{font-family:Arial,sans-serif;font-size:10px;padding:20px;color:#222;}'+
-    'h2{color:#1a1a2e;border-bottom:2px solid #c9a84c;padding-bottom:6px;font-size:15px;}'+
-    '.meta{color:#666;font-size:10px;margin-bottom:4px;}'+
-    'table{width:100%;border-collapse:collapse;margin-bottom:10px;}'+
-    'th{background:#1a1a2e;color:white;padding:6px 8px;text-align:left;font-size:9px;text-transform:uppercase;}'+
-    'td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;}'+
-    'tr:nth-child(even)td{background:#f9f9f9;}'+
-    '@media print{button{display:none}}'+
-  '</style></head><body>'+
-    '<h2>⚖ Lexis — İş Raporu</h2>'+
-    '<div class="meta">Dönem: <b>'+fmt(start)+'</b> — <b>'+fmt(end)+'</b></div>'+
-    '<div class="meta">Kişi: <b>'+personName+'</b> &nbsp;|&nbsp; Toplam: <b>'+(davaRows.length+digerRows.length)+' kayıt</b></div>'+
-    '<div class="meta">Oluşturulma: '+new Date().toLocaleDateString('tr-TR')+' '+new Date().toLocaleTimeString('tr-TR')+'</div>'+
-    davaHtml+digerHtml+
-    '<p style="text-align:right;color:#aaa;font-size:9px;margin-top:20px">Lexis Ekip Süre Takip Sistemi</p>'+
-  '</body></html>');
-  win.document.close();
-  setTimeout(()=>win.print(),600);
-}
-
-// Dava Excel/PDF (Tüm İşler sekmesinden)
-function exportDavaExcel(){
-  const wb=XLSX.utils.book_new();
-  const filtered=applyFil(tasks);
-  const h=['Mahkeme','Dosya No','İşlem Türü','Tebligat','Teslim','Atanan','Öncelik','Notlar','Durum'];
-  const rows=filtered.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).map(t=>[
-    t.mahkeme||'',t.dosya_no||'',t.tur||'',fmt(t.tebligat_tarihi),fmt(t.teslim_tarihi),
-    users[t.atanan]?.name||'',{acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'}[t.oncelik]||'',
-    t.not||'',t.done?'Tamamlandı':t.pending?'Onay Bekliyor':'Aktif'
-  ]);
-  const ws=XLSX.utils.aoa_to_sheet([h,...rows]);
-  ws['!cols']=[{wch:28},{wch:14},{wch:26},{wch:13},{wch:13},{wch:16},{wch:10},{wch:22},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws,'Dava Dosyaları');
-  XLSX.writeFile(wb,'lexis-davalar-'+new Date().toISOString().split('T')[0]+'.xlsx');
-  toast('📊 Excel indirildi');
-}
-
-function exportDavaPDF(){
-  const filtered=applyFil(tasks);
-  const win=window.open('','_blank');
-  const rows=filtered.sort((a,b)=>new Date(a.teslim_tarihi)-new Date(b.teslim_tarihi)).map(t=>
-    '<tr><td>'+( t.mahkeme||'—')+'</td><td>'+( t.dosya_no||'—')+'</td><td>'+( t.tur||'—')+'</td>'+
-    '<td>'+fmt(t.tebligat_tarihi)+'</td><td>'+fmt(t.teslim_tarihi)+'</td>'+
-    '<td>'+(users[t.atanan]?.name||'—')+'</td>'+
-    '<td>'+({acil:'🔴 Acil',yuksek:'🟠 Yüksek',orta:'🟡 Orta',dusuk:'🟢 Düşük'}[t.oncelik]||t.oncelik)+'</td>'+
-    '<td style="color:'+(t.done?'green':t.pending?'#2980b9':'#c0392b')+'">'+(t.done?'✓ Tamamlandı':t.pending?'Onay Bek.':'Aktif')+'</td></tr>'
-  ).join('');
-  win.document.write('<html><head><title>Dava Dosyaları — Lexis</title><style>'+
-    'body{font-family:Arial,sans-serif;font-size:10px;padding:20px;}'+
-    'h2{color:#1a1a2e;border-bottom:2px solid #c9a84c;padding-bottom:6px;font-size:15px;}'+
-    'table{width:100%;border-collapse:collapse;}'+
-    'th{background:#1a1a2e;color:white;padding:6px 8px;text-align:left;font-size:9px;text-transform:uppercase;}'+
-    'td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;}'+
-    'tr:nth-child(even)td{background:#f9f9f9;}'+
-  '</style></head><body>'+
-    '<h2>⚖ Lexis — Dava Dosyaları</h2>'+
-    '<p style="color:#666;font-size:10px;margin-bottom:10px">Tarih: '+new Date().toLocaleDateString('tr-TR')+' | Toplam: '+filtered.length+' kayıt</p>'+
-    '<table><thead><tr><th>Mahkeme</th><th>Dosya No</th><th>İşlem Türü</th><th>Tebligat</th><th>Teslim</th><th>Atanan</th><th>Öncelik</th><th>Durum</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table>'+
-  '</body></html>');
-  win.document.close();
-  setTimeout(()=>win.print(),500);
-}
-
 // ── DİĞER İŞLER ──
 const DIGER_TYPES=['İhtarname Cevabı','İcra Takibi Başlatma','Dava Açma','Konu Araştırma','Sözleşme Hazırlama','Dilekçe Yazma','Müvekkil Görüşmesi','Belge Hazırlama','Arabuluculuk Başvurusu','Resmi Yazışma','Diğer'];
 
 function renderDiger(){
-  const mine = isAdmin() ? digerIsler : digerIsler.filter(d=>d.atanan===cu.idx);
+  const mine = digerIsler; // Herkes tüm diğer işleri görebilir
   const filtered = mine.filter(d=>{
     if(filt==='aktif') return !d.done;
     if(filt==='tamam') return d.done;
@@ -1294,11 +1029,12 @@ function digerTblHtml(arr){
       '<td style="font-size:12px">'+fmt(d.teslim_tarihi)+'</td>'+
       (isAdmin()?'<td>'+uchip(d.atanan)+'</td>':'')+
       '<td>'+prio(d.oncelik)+'</td>'+
-      '<td style="font-size:12px;color:var(--text-mid);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+( d.onay||'—')+'</td>'+
-      '<td style="font-size:12px;color:var(--text-mid);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+( d.not||'—')+'</td>'+
+      '<td style="font-size:12px;color:var(--text-mid);max-width:150px" title="'+(d.onay||'')+'">'+(d.onay||'—')+'</td>'+
+      '<td style="font-size:12px;color:var(--text-mid);max-width:150px" title="'+(d.not||'')+'">'+(d.not||'—')+'</td>'+
       '<td><div style="display:flex;gap:4px;">'+
         (canDone&&!d.done?'<button class="btn btn-ghost btn-sm" onclick="doneDiger('+d.id+')" style="color:var(--green);border-color:rgba(76,175,125,.3)">✓ Tamam</button>':'')+
         (d.done?'<button class="btn btn-ghost btn-sm" onclick="undoneDiger('+d.id+')">↩</button>':'')+
+        (isAdmin()||d.atanan===cu.idx?'<button class="btn btn-ghost btn-sm" onclick="openEditDiger('+d.id+')">✏️</button>':'')+
         (isAdmin()?'<button class="btn btn-ghost btn-sm" onclick="delDiger('+d.id+')" style="color:var(--red);border-color:rgba(217,79,79,.2)">🗑</button>':'')+
       '</div></td>'+
     '</tr>';
@@ -1400,29 +1136,55 @@ function openPwdModal(){
     '<span style="font-size:13px;font-weight:600">'+u.name+'</span>'+
     (u.role==='admin'?'<span class="badge-admin">Admin</span>':'')+
     '</div>'+
-    '<input class="pwd-input" id="pfield'+i+'" type="password" placeholder="Yeni şifre girin...">'+
-    '<span class="pwd-status '+(u.password?'pwd-set':'pwd-unset')+'">'+(u.password?'✓ Şifreli':'✗ Şifresiz')+'</span>'+
+    '<input class="pwd-input" id="pfield'+i+'" type="password" placeholder="Yeni şifre..." value="'+(u.password||'')+'">'+
+    '<span class="pwd-status '+(u.password?'pwd-set':'pwd-unset')+'">'+( u.password?'✓ Şifreli':'✗ Şifresiz')+'</span>'+
     '</div>'
   ).join('');
   document.getElementById('pwd-modal').classList.add('open');
 }
 
 async function savePwds(){
-  // Only hash fields that have been changed (non-empty new input)
   let changed=false;
-  const fields=[0,1,2,3].map(i=>(document.getElementById('pfield'+i)?.value||'').trim());
-  for(let i=0;i<users.length;i++){
-    const v=fields[i];
-    if(v==='') continue; // empty = keep existing
-    const hashed=await hashPwd(v);
-    if(hashed!==users[i].password){users[i].password=hashed;changed=true;}
-  }
-  if(!changed){document.getElementById('pwd-modal').classList.remove('open');toast('ℹ️ Değişiklik yapılmadı');return;}
+  users.forEach((u,i)=>{
+    const v=(document.getElementById('pfield'+i)?.value||'').trim();
+    if(v!==u.password){u.password=v;changed=true;}
+  });
+  if(!changed){document.getElementById('pwd-modal').classList.remove('open');return;}
   showLoading('Şifreler kaydediliyor...');
   await pushData();
   hideLoading();
   document.getElementById('pwd-modal').classList.remove('open');
-  toast('✅ Şifreler güncellendi ve şifrelendi');
+  toast('✅ Şifreler güncellendi');
+}
+
+
+function openEditDiger(id){
+  const d=digerIsler.find(x=>x.id===id);if(!d)return;deid=id;
+  document.getElementById('dei').value=d.isim||'';
+  document.getElementById('det').innerHTML=DIGER_TYPES.map(t=>'<option'+(t===d.tur?' selected':'')+'>'+t+'</option>').join('');
+  document.getElementById('dep').value=d.oncelik||'orta';
+  document.getElementById('deg').value=d.gelis_tarihi||'';
+  document.getElementById('ded').value=d.teslim_tarihi||'';
+  document.getElementById('dea').innerHTML=users.map((u,i)=>'<option value="'+i+'"'+(i===d.atanan?' selected':'')+'>'+u.name+'</option>').join('');
+  document.getElementById('deo').value=d.onay||'';
+  document.getElementById('den').value=d.not||'';
+  document.getElementById('diger-edit-modal').classList.add('open');
+}
+function closeEditDiger(){document.getElementById('diger-edit-modal').classList.remove('open');deid=null;}
+async function saveEditDiger(){
+  const d=digerIsler.find(x=>x.id===deid);if(!d)return;
+  const isim=document.getElementById('dei').value.trim();
+  const teslim=document.getElementById('ded').value;
+  if(!isim||!teslim){toast('⚠️ İş adı ve teslim tarihi zorunludur!');return;}
+  d.isim=isim;
+  d.tur=document.getElementById('det').value;
+  d.oncelik=document.getElementById('dep').value;
+  d.gelis_tarihi=document.getElementById('deg').value;
+  d.teslim_tarihi=teslim;
+  d.atanan=parseInt(document.getElementById('dea').value);
+  d.onay=document.getElementById('deo').value.trim();
+  d.not=document.getElementById('den').value.trim();
+  showLoading('Kaydediliyor...');await pushData();hideLoading();closeEditDiger();renderContent();toast('💾 Güncellendi');
 }
 
 function exportJSON(){
@@ -1454,7 +1216,7 @@ function importJSON(){
 }
 
 // Modal close on overlay
-['names-modal','share-modal','edit-modal','pwd-modal'].forEach(id=>{
+['names-modal','share-modal','edit-modal','pwd-modal','diger-edit-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
 
