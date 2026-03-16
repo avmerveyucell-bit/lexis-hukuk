@@ -2,62 +2,64 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Lexis Hukuk Takvim</title>
+  <title>Lexis Hukuk</title>
+
+  <!-- Mevcut CSS dosyalarını koru -->
+  <link rel="stylesheet" href="style.css">
 
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
   <style>
-    body.light {
-      background: #ffffff;
-      color: #111;
-    }
+    body.light { background: #ffffff; color: #111; }
+    body.dark { background: #1e1e1e; color: #eee; }
 
-    body.dark {
-      background: #1e1e1e;
-      color: #eee;
-    }
+    #calendar { max-width: 900px; margin: 40px auto; }
 
-    /* Takvim için stil düzenlemeleri */
-    #calendar {
-      max-width: 900px;
-      margin: 40px auto;
-    }
-
-    button {
-      margin: 5px;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-
-    h1 {
-      text-align: center;
-    }
+    button.theme-btn { margin: 5px; padding: 8px 12px; cursor: pointer; }
   </style>
 </head>
 <body class="light">
 
-  <h1>Lexis Hukuk Takvim</h1>
+  <!-- Mevcut menü ve içerik korunuyor -->
+  <header>
+    <h1>Lexis Hukuk</h1>
+    <nav>
+      <a href="#">Ana Sayfa</a> |
+      <a href="#">Dava Takibi</a> |
+      <a href="#">Müvekkiller</a>
+    </nav>
+  </header>
 
-  <!-- Tema değiştirme butonları -->
-  <div style="text-align:center;">
-    <button onclick="changeTheme('light')">Light Tema</button>
-    <button onclick="changeTheme('dark')">Dark Tema</button>
-  </div>
+  <main>
+    <!-- Tema butonları -->
+    <div style="text-align:center; margin:20px 0;">
+      <button class="theme-btn" onclick="changeTheme('light')">Light Tema</button>
+      <button class="theme-btn" onclick="changeTheme('dark')">Dark Tema</button>
+    </div>
 
-  <!-- Takvim divi -->
-  <div id="calendar"></div>
+    <!-- Takvim divi -->
+    <div id="calendar"></div>
+
+    <!-- Mevcut içerik korunuyor -->
+    <section>
+      <h2>Hoşgeldiniz!</h2>
+      <p>Burada hukuk ofisi bilgileriniz, duyurular ve tablolar görünecek.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Lexis Hukuk</p>
+  </footer>
 
   <!-- FullCalendar JS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
   <script>
-    // Tema değiştirme fonksiyonu
-    function changeTheme(theme) {
-      document.body.className = theme;
-    }
+    // Tema değiştirme
+    function changeTheme(theme) { document.body.className = theme; }
 
-    // Örnek etkinlikler
+    // Örnek takvim etkinlikleri
     const events = [
       { title: 'Dava Takibi', start: '2026-03-17' },
       { title: 'Müvekkil Görüşmesi', start: '2026-03-17' },
@@ -70,13 +72,15 @@
     // Takvimi oluştur
     document.addEventListener('DOMContentLoaded', function() {
       const calendarEl = document.getElementById('calendar');
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        dayMaxEvents: true,       // +n olaylarını göster
-        moreLinkClick: "popover", // popup aç
-        events: events
-      });
-      calendar.render();
+      if(calendarEl){
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          dayMaxEvents: true,       // +n olaylarını göster
+          moreLinkClick: "popover", // popup aç
+          events: events
+        });
+        calendar.render();
+      }
     });
   </script>
 
