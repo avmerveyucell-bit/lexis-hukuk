@@ -2477,18 +2477,15 @@ function renderCalendar(){
   let calMonth=window._calMonth??now.getMonth();
   let calYear=window._calYear??now.getFullYear();
   window._calMonth=calMonth;window._calYear=calYear;
-
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   const monthName=new Date(calYear,calMonth,1).toLocaleString('tr-TR',{month:'long',year:'numeric'});
   const todayStr=today();
-
   const byDate={};
   const addItem=(ds,item)=>{if(!byDate[ds])byDate[ds]=[];byDate[ds].push(item);};
   tasks.filter(t=>canSee(t)&&t.teslim_tarihi).forEach(t=>addItem(t.teslim_tarihi,{...t,_tip:'dava'}));
   digerIsler.filter(d=>canSee(d)&&d.teslim_tarihi).forEach(d=>addItem(d.teslim_tarihi,{...d,_tip:'diger'}));
   window._calByDate=byDate;
-
   const pcolor={acil:'var(--red)',yuksek:'var(--orange)',orta:'var(--gold)',dusuk:'var(--green)'};
   let cells='';
   const startPad=(firstDay+6)%7;
@@ -2497,34 +2494,38 @@ function renderCalendar(){
     const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const items=byDate[ds]||[];
     const isToday=ds===todayStr;
-    cells+='<td style="vertical-align:top;padding:6px;border:0.5px solid var(--border);background:'+(isToday?'rgba(201,168,76,0.08)':'var(--surface)')+';min-height:80px;min-width:80px;">'+
-      '<div style="font-weight:'+(isToday?'700':'400')+';font-size:13px;color:'+(isToday?'var(--gold)':items.some(x=>!x.done)?'var(--red)':'var(--text-mid)')+';margin-bottom:4px;">'+d+'</div>'+
-      items.slice(0,3).map(x=>'<div title="'+(x._tip==='dava'?x.mahkeme:x.isim)+'" style="font-size:10px;padding:2px 5px;margin-bottom:2px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;border-left:3px solid '+(pcolor[x.oncelik]||'var(--gold)')+';background:var(--surface2);color:'+(x.done?'var(--text-dim)':x.rejected?'var(--red)':'var(--text)')+';">'+(x._tip==='dava'?'⚖️':'📝')+' '+(x._tip==='dava'?x.mahkeme:x.isim)+'</div>').join('')+
-      (items.length>3?'<button onclick="showCalDay(''+ds+'')" style="background:var(--gold);color:#1a1a1a;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;cursor:pointer;margin-top:3px;width:100%">+'+(items.length-3)+' daha &rarr;</button>':'')+
-    '</td>';
+    const itemsHtml=items.slice(0,3).map(function(x){
+      return '<div title="'+(x._tip==='dava'?x.mahkeme:x.isim)+'" style="font-size:10px;padding:2px 5px;margin-bottom:2px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;border-left:3px solid '+(pcolor[x.oncelik]||'var(--gold)')+';background:var(--surface2);color:'+(x.done?'var(--text-dim)':x.rejected?'var(--red)':'var(--text)')+';">'+(x._tip==='dava'?'&#9878;':'&#128221;')+' '+(x._tip==='dava'?x.mahkeme:x.isim)+'</div>';
+    }).join('');
+    const moreBtn=items.length>3?'<button onclick="showCalDay(this)" data-date="'+ds+'" style="background:var(--gold);color:#1a1a1a;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;cursor:pointer;margin-top:3px;width:100%">+'+(items.length-3)+' daha</button>':'';
+    cells+='<td style="vertical-align:top;padding:6px;border:0.5px solid var(--border);background:'+(isToday?'rgba(201,168,76,0.08)':'var(--surface)')+';min-height:80px;min-width:80px;">';
+    cells+='<div style="font-weight:'+(isToday?'700':'400')+';font-size:13px;color:'+(isToday?'var(--gold)':items.some(function(x){return !x.done;})?'var(--red)':'var(--text-mid)')+';margin-bottom:4px;">'+d+'</div>';
+    cells+=itemsHtml+moreBtn+'</td>';
     if((startPad+d)%7===0&&d<daysInMonth) cells+='</tr><tr>';
   }
-  return'<div class="panel">'+
+  return '<div class="panel">'+
     '<div class="ph" style="justify-content:space-between;">'+
-      '<button class="btn btn-ghost" onclick="window._calMonth=(window._calMonth??'+calMonth+')-1;if(window._calMonth<0){window._calMonth=11;window._calYear=(window._calYear??'+calYear+')-1;}renderContent()">◀</button>'+
+      '<button class="btn btn-ghost" onclick="window._calMonth=(window._calMonth??'+calMonth+')-1;if(window._calMonth<0){window._calMonth=11;window._calYear=(window._calYear??'+calYear+')-1;}renderContent()">&#9664;</button>'+
       '<div class="ph-title" style="font-size:17px;">'+monthName+'</div>'+
-      '<button class="btn btn-ghost" onclick="window._calMonth=(window._calMonth??'+calMonth+')+1;if(window._calMonth>11){window._calMonth=0;window._calYear=(window._calYear??'+calYear+')+1;}renderContent()">▶</button>'+
+      '<button class="btn btn-ghost" onclick="window._calMonth=(window._calMonth??'+calMonth+')+1;if(window._calMonth>11){window._calMonth=0;window._calYear=(window._calYear??'+calYear+')+1;}renderContent()">&#9654;</button>'+
     '</div>'+
     '<div style="overflow-x:auto;">'+
       '<table style="width:100%;border-collapse:collapse;min-width:560px;">'+
-        '<thead><tr>'+['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map(d=>'<th style="padding:8px;text-align:center;font-size:12px;color:var(--text-mid);background:var(--surface2);border:0.5px solid var(--border);">'+d+'</th>').join('')+'</tr></thead>'+
+        '<thead><tr>'+['Pzt','Sal','Car','Per','Cum','Cmt','Paz'].map(function(d){return '<th style="padding:8px;text-align:center;font-size:12px;color:var(--text-mid);background:var(--surface2);border:0.5px solid var(--border);">'+d+'</th>';}).join('')+'</tr></thead>'+
         '<tbody><tr>'+cells+'</tr></tbody>'+
       '</table>'+
     '</div>'+
     '<div style="padding:12px 16px;font-size:12px;color:var(--text-mid);display:flex;gap:16px;flex-wrap:wrap;">'+
-      '<span>⚖️ Dava işi</span><span>📝 Diğer iş</span>'+
-      '<span style="color:var(--red)">■ Acil</span><span style="color:var(--orange)">■ Yüksek</span>'+
-      '<span style="color:var(--gold)">■ Orta</span><span style="color:var(--green)">■ Düşük</span>'+
+      '<span>Dava isi</span><span>Diger is</span>'+
+      '<span style="color:var(--red)">&#9632; Acil</span><span style="color:var(--orange)">&#9632; Yuksek</span>'+
+      '<span style="color:var(--gold)">&#9632; Orta</span><span style="color:var(--green)">&#9632; Dusuk</span>'+
     '</div>'+
   '</div>';
 }
 
-function showCalDay(ds){
+
+function showCalDay(btn){
+  var ds=btn.getAttribute?btn.getAttribute("data-date"):btn;
   const items=(window._calByDate&&window._calByDate[ds])||[];
   const pcolor={acil:'var(--red)',yuksek:'var(--orange)',orta:'var(--gold)',dusuk:'var(--green)'};
   const[y,m,d]=ds.split('-');
