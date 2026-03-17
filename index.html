@@ -2707,49 +2707,52 @@ const EMBEDDED_USERS=[{"name":"Merve","role":"admin","password":""},{"name":"Sev
 loadCreds();
 window._wsId='av_merveyucell_gmail_com';
 
-async function startApp(){
-  document.getElementById('setup-wizard').style.display='none';
-  showLoading('Veriler yükleniyor...');
-  try{
-    const data=await readBin();
+// Firebase config gömülü - her cihazda otomatik çalışır
+const _cfg={"apiKey":"AIzaSyC-NTaPQ68jM2Gv0Y4eFqA_EYN_lM8Sox4","authDomain":"lexis-hukuk.firebaseapp.com","projectId":"lexis-hukuk","storageBucket":"lexis-hukuk.firebasestorage.app","messagingSenderId":"262435033798","appId":"1:262435033798:web:5469e1e00dabd443a8bdc7"};
+
+// Wizard'ı hemen gizle
+document.getElementById('setup-wizard').style.display='none';
+showLoading('Veriler yükleniyor...');
+
+// Firebase hazır olunca veriyi yükle ve kart ekranını aç
+function _doStart(){
+  readBin().then(function(data){
     users=data.users||[];tasks=data.tasks||[];digerIsler=data.digerIsler||[];
     settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},data.settings||{});
     try{localStorage.setItem('lexis_users_cache',JSON.stringify(users));}catch(e){}
     hideLoading();
     renderLogin();
-  }catch(e){
+  }).catch(function(e){
     hideLoading();
-    const cached=localStorage.getItem('lexis_users_cache');
-    if(cached){try{users=JSON.parse(cached);renderLogin();return;}catch(e2){}}
-    users=EMBEDDED_USERS;
+    var cached=localStorage.getItem('lexis_users_cache');
+    if(cached){try{users=JSON.parse(cached);}catch(e2){users=EMBEDDED_USERS;}}
+    else{users=EMBEDDED_USERS;}
     renderLogin();
-  }
+  });
 }
 
-// Firebase module hazır olunca başlat
-const cfg=loadFbConfig();
-if(window._fbReady){
-  startApp();
-} else {
-  window._onFbReady=()=>startApp();
-  // Module yüklenince _fbInit çağrılır — ama burada da çağıralım
-  if(window._fbInit){window._fbInit(cfg);}
-  else{
-    // Module henüz yüklenmediyse bekle
-    let attempts=0;
-    const waitFb=setInterval(()=>{
-      attempts++;
-      if(window._fbInit){
-        clearInterval(waitFb);
-        window._fbInit(cfg);
-      } else if(attempts>20){
-        clearInterval(waitFb);
-        // Yine de çalıştır (önbellekle)
-        startApp();
-      }
-    },100);
+// Firebase module yüklenince başlat
+var _initAttempts=0;
+var _initTimer=setInterval(function(){
+  _initAttempts++;
+  if(window._fbInit&&window._fbReady===false){
+    window._fbInit(_cfg);
   }
-}
+  if(window._fbReady){
+    clearInterval(_initTimer);
+    _doStart();
+  } else if(_initAttempts>30){
+    clearInterval(_initTimer);
+    // Firebase olmadan önbellekle devam et
+    hideLoading();
+    var cached=localStorage.getItem('lexis_users_cache');
+    if(cached){try{users=JSON.parse(cached);}catch(e){users=EMBEDDED_USERS;}}
+    else{users=EMBEDDED_USERS;}
+    renderLogin();
+  }
+},100);
+
+
 </script>
 </body>
 </html>
