@@ -441,6 +441,33 @@ tr.done-row td{opacity:.4;}
   <div class="login-ws">Çalışma Alanı: <span id="ws-name">—</span></div>
   <div class="login-hint">Hesabınızı Seçin</div>
   <div class="user-cards" id="ucards"></div>
+
+  <!-- Password input panel (hidden by default) -->
+  <div id="pwd-login-panel" style="display:none;width:100%;max-width:480px;margin-top:20px;">
+    <div style="background:var(--surface);border:1.5px solid var(--border2);border-radius:14px;padding:24px;border-top:3px solid var(--gold);box-shadow:var(--shadow);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <div id="pwd-login-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;"></div>
+        <div>
+          <div id="pwd-login-name" style="font-size:16px;font-weight:600;"></div>
+          <div id="pwd-login-role" style="font-size:11px;color:var(--text-mid);text-transform:uppercase;letter-spacing:1px;"></div>
+        </div>
+        <button onclick="closePwdLogin()" style="margin-left:auto;background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:4px 8px;">✕</button>
+      </div>
+      <div class="fg" style="margin-bottom:14px;">
+        <label>🔐 Şifre</label>
+        <input id="pwd-login-input" type="password" placeholder="Şifrenizi girin..." 
+          style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;outline:none;width:100%;transition:border-color .2s;"
+          onkeydown="if(event.key==='Enter')submitPwdLogin()"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div id="pwd-login-err" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closePwdLogin()">İptal</button>
+        <button class="btn btn-gold" onclick="submitPwdLogin()">Giriş Yap →</button>
+      </div>
+    </div>
+  </div>
+
   <div class="login-footer">
     <button class="lf-btn" onclick="openNamesModal()">👥 Kullanıcı Yönetimi</button>
 
@@ -581,7 +608,6 @@ tr.done-row td{opacity:.4;}
         <span onclick="document.getElementById('setting-crossAssign').click()" id="toggle-crossAssign" style="position:absolute;cursor:pointer;inset:0;border-radius:24px;transition:.3s;background:var(--border2);"></span>
       </label>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
       <div>
         <div style="font-size:14px;font-weight:500;margin-bottom:3px;">Dava işlerinde onay sistemi</div>
@@ -929,12 +955,51 @@ async function saveNames(){
   toast('✅ Kullanıcılar güncellendi');
 }
 
+let _pendingLoginIdx=null;
+
+function closePwdLogin(){
+  document.getElementById('pwd-login-panel').style.display='none';
+  document.getElementById('pwd-login-input').value='';
+  document.getElementById('pwd-login-err').textContent='';
+  document.getElementById('ucards').style.opacity='1';
+  document.getElementById('ucards').style.pointerEvents='auto';
+  _pendingLoginIdx=null;
+}
+
 async function login(i){
   const u=users[i];
   if(!u.password){alert('⚠️ Bu hesap için şifre tanımlanmamış. Lütfen yöneticiyle iletişime geçin.');return;}
-  const pass=prompt('🔐 '+u.name+' — Şifrenizi girin:');
-  if(pass===null)return;
-  if(pass!==u.password){alert('⚠️ Hatalı şifre! Tekrar deneyin.');return;}
+  _pendingLoginIdx=i;
+  // Show password panel
+  const panel=document.getElementById('pwd-login-panel');
+  panel.style.display='block';
+  document.getElementById('ucards').style.opacity='.4';
+  document.getElementById('ucards').style.pointerEvents='none';
+  const av=document.getElementById('pwd-login-avatar');
+  av.textContent=(u.name||'?')[0];
+  av.style.background=COLORS[i%COLORS.length]+'22';
+  av.style.color=COLORS[i%COLORS.length];
+  av.style.border='2px solid '+COLORS[i%COLORS.length]+'44';
+  document.getElementById('pwd-login-name').textContent=u.name;
+  document.getElementById('pwd-login-role').textContent=u.role==='admin'?'Yönetici':'Avukat';
+  document.getElementById('pwd-login-input').value='';
+  document.getElementById('pwd-login-err').textContent='';
+  setTimeout(()=>document.getElementById('pwd-login-input').focus(),100);
+}
+
+async function submitPwdLogin(){
+  const i=_pendingLoginIdx;
+  if(i===null)return;
+  const u=users[i];
+  const pass=document.getElementById('pwd-login-input').value;
+  if(!pass){document.getElementById('pwd-login-err').textContent='⚠️ Şifre boş olamaz';return;}
+  if(pass!==u.password){
+    document.getElementById('pwd-login-err').textContent='⚠️ Hatalı şifre! Tekrar deneyin.';
+    document.getElementById('pwd-login-input').value='';
+    document.getElementById('pwd-login-input').focus();
+    return;
+  }
+  closePwdLogin();
   showLoading('Veriler yükleniyor...');
   try{
     const cfg=loadFbConfig();
@@ -1824,7 +1889,7 @@ function exportKisiPDF(idx){
 function openThemeModal(){
   const isLight=document.body.classList.contains('light-theme');
   document.getElementById('theme-rows').innerHTML=
-    '<div onclick="setTheme('dark')" style="cursor:pointer;border:2px solid '+(isLight?'#363d58':'#c9a84c')+';border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;background:#181c27;">'+
+    '<div onclick="setTheme(\'dark\')" style="cursor:pointer;border:2px solid '+(isLight?'#363d58':'#c9a84c')+';border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;background:#181c27;">'+
       '<div style="display:flex;gap:5px;">'+
         '<div style="width:22px;height:22px;border-radius:50%;background:#0f1117;border:2px solid #c9a84c"></div>'+
         '<div style="width:22px;height:22px;border-radius:50%;background:#1f2436"></div>'+
@@ -1833,7 +1898,7 @@ function openThemeModal(){
       '<span style="font-size:14px;font-weight:500;color:#e8e2d4;">🌙 Koyu Tema</span>'+
       (!isLight?'<span style="margin-left:auto;font-size:12px;color:#c9a84c;font-weight:600;">✓ Aktif</span>':'')+
     '</div>'+
-    '<div onclick="setTheme('light')" style="cursor:pointer;border:2px solid '+(isLight?'#b8860b':'#ddd8cc')+';border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#ffffff;">'+
+    '<div onclick="setTheme(\'light\')" style="cursor:pointer;border:2px solid '+(isLight?'#b8860b':'#ddd8cc')+';border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#ffffff;">'+
       '<div style="display:flex;gap:5px;">'+
         '<div style="width:22px;height:22px;border-radius:50%;background:#f5f5f0;border:2px solid #b8860b"></div>'+
         '<div style="width:22px;height:22px;border-radius:50%;background:#f0ede6"></div>'+
@@ -2421,7 +2486,7 @@ async function saveEditDiger(){
 }
 
 function exportJSON(){
-  const data=JSON.stringify({tasks,users,digerIsler,settings,binId,exportedAt:new Date().toISOString()},null,2);
+  const data=JSON.stringify({tasks,users,digerIsler,settings,wsId,exportedAt:new Date().toISOString()},null,2);
   const a=document.createElement('a');
   a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
   a.download='lexis-yedek-'+new Date().toISOString().split('T')[0]+'.json';
@@ -2566,86 +2631,6 @@ function showCalDay(btn){
   document.getElementById('calday-modal').classList.add('open');
 }
 
-
-function renderReports(){
-  const now=new Date();
-  const thisMonth=now.getMonth();
-  const thisYear=now.getFullYear();
-  const lastMonth=(thisMonth===0?11:thisMonth-1);
-  const lastMonthYear=(thisMonth===0?thisYear-1:thisYear);
-
-  const inMonth=(dateStr,m,y)=>{if(!dateStr)return false;const d=new Date(dateStr);return d.getMonth()===m&&d.getFullYear()===y;};
-  const inWeek=(dateStr)=>{if(!dateStr)return false;const d=new Date(dateStr);const today=new Date();today.setHours(0,0,0,0);const end=new Date(today);end.setDate(end.getDate()+6);return d>=today&&d<=end;};
-
-  // Bu ay
-  const thisMonthTasks=tasks.filter(t=>inMonth(t.teslim_tarihi,thisMonth,thisYear));
-  const thisMonthDone=thisMonthTasks.filter(t=>t.done).length;
-  const thisMonthActive=thisMonthTasks.filter(t=>!t.done).length;
-  const thisMonthDiger=digerIsler.filter(d=>inMonth(d.teslim_tarihi,thisMonth,thisYear));
-  const thisMonthDigerDone=thisMonthDiger.filter(d=>d.done).length;
-
-  // Bu hafta
-  const weekTasks=tasks.filter(t=>inWeek(t.teslim_tarihi)&&!t.done);
-  const weekDiger=digerIsler.filter(d=>inWeek(d.teslim_tarihi)&&!d.done);
-
-  // Geçmiş (gecikmiş)
-  const overdueTasks=tasks.filter(t=>!t.done&&!t.pending&&diff(t.teslim_tarihi)<0);
-  const overdueDiger=digerIsler.filter(d=>!d.done&&!d.rejected&&diff(d.teslim_tarihi)<0);
-
-  // Kişi performans
-  const perfCards=users.map((u,i)=>{
-    const ut=tasks.filter(t=>t.atanan===i);
-    const ud=digerIsler.filter(d=>d.atanan===i);
-    const done=ut.filter(t=>t.done).length+ud.filter(d=>d.done).length;
-    const total=ut.length+ud.length;
-    const active=ut.filter(t=>!t.done).length+ud.filter(d=>!d.done).length;
-    const overdue=ut.filter(t=>!t.done&&diff(t.teslim_tarihi)<0).length+ud.filter(d=>!d.done&&diff(d.teslim_tarihi)<0).length;
-    const pct=total?Math.round(done/total*100):0;
-    return`<div class="wcard">
-      <div class="wcard-h">
-        <div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;background:${COLORS[i%COLORS.length]}22;color:${COLORS[i%COLORS.length]};border:2px solid ${COLORS[i%COLORS.length]}44;">${(u.name||'?')[0]}</div>
-        <div><div class="wcard-nm">${u.name}</div><div class="wcard-rl">${u.role==='admin'?'Yönetici':'Avukat'}</div></div>
-      </div>
-      <div class="wstats">
-        <div class="ws"><div class="wsn g">${done}</div><div class="wsl">Tamamlandı</div></div>
-        <div class="ws"><div class="wsn y">${active}</div><div class="wsl">Aktif</div></div>
-        <div class="ws"><div class="wsn r">${overdue}</div><div class="wsl">Gecikmiş</div></div>
-        <div class="ws"><div class="wsn" style="color:var(--blue)">${total}</div><div class="wsl">Toplam</div></div>
-      </div>
-      <div style="margin-top:10px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-mid);margin-bottom:4px;"><span>Tamamlanma oranı</span><span style="color:var(--gold);font-weight:600">${pct}%</span></div>
-        <div style="background:var(--border);border-radius:20px;height:6px;overflow:hidden;">
-          <div style="height:6px;border-radius:20px;background:${pct>75?'var(--green)':pct>40?'var(--gold)':'var(--red)'};width:${pct}%;transition:width .4s;"></div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  return`
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
-    <div class="stat-card"><div class="stat-icon">📅</div><div><div class="snum" style="color:var(--gold)">${thisMonthTasks.length+thisMonthDiger.length}</div><div class="slbl">Bu Ay Toplam</div></div></div>
-    <div class="stat-card"><div class="stat-icon">✅</div><div><div class="snum" style="color:var(--green)">${thisMonthDone+thisMonthDigerDone}</div><div class="slbl">Bu Ay Tamamlanan</div></div></div>
-    <div class="stat-card"><div class="stat-icon">📆</div><div><div class="snum" style="color:var(--blue)">${weekTasks.length+weekDiger.length}</div><div class="slbl">Bu Hafta Teslim</div></div></div>
-    <div class="stat-card"><div class="stat-icon">⚠</div><div><div class="snum" style="color:var(--red)">${overdueTasks.length+overdueDiger.length}</div><div class="slbl">Gecikmiş</div></div></div>
-  </div>
-
-  <div class="panel" style="margin-bottom:18px;">
-    <div class="ph"><div class="ph-title">👤 Kişi Performansı</div></div>
-    <div class="wgrid">${perfCards}</div>
-  </div>
-
-  ${weekTasks.length+weekDiger.length>0?`<div class="panel" style="margin-bottom:18px;">
-    <div class="ph"><div class="ph-title">📆 Bu Hafta Teslim Edilecekler (${weekTasks.length+weekDiger.length})</div></div>
-    ${weekTasks.length?`<div style="padding:8px 16px 0;font-size:12px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.5px;">Dava İşleri</div><div class="tw">${tblHtml(sortT(weekTasks),true)}</div>`:''}
-    ${weekDiger.length?`<div style="padding:8px 16px 0;font-size:12px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.5px;">Diğer İşler</div><div class="tw">${digerTblHtml(weekDiger)}</div>`:''}
-  </div>`:''}
-
-  ${overdueTasks.length+overdueDiger.length>0?`<div class="panel">
-    <div class="ph"><div class="ph-title">🔴 Gecikmiş İşler (${overdueTasks.length+overdueDiger.length})</div></div>
-    ${overdueTasks.length?`<div style="padding:8px 16px 0;font-size:12px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.5px;">Dava İşleri</div><div class="tw">${tblHtml(sortT(overdueTasks),true)}</div>`:''}
-    ${overdueDiger.length?`<div style="padding:8px 16px 0;font-size:12px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.5px;">Diğer İşler</div><div class="tw">${digerTblHtml(overdueDiger)}</div>`:''}
-  </div>`:''}`;
-}
 
 // ═══════════════════════════════════════════
 // 🔔 BİLDİRİM SİSTEMİ
