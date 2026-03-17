@@ -37,22 +37,23 @@ window._fbInit(_embeddedCfg);
 </script>
 <style>
 :root{
-  --bg:#0f1117;--surface:#181c27;--surface2:#1f2436;
-  --border:#2a2f45;--border2:#363d58;
-  --gold:#c9a84c;--gold2:#f0c96a;--gold-dim:rgba(201,168,76,0.12);
-  --text:#e8e2d4;--text-mid:#9a9380;--text-dim:#5c5849;
-  --red:#d94f4f;--red-dim:rgba(217,79,79,0.12);
-  --orange:#d4883a;--orange-dim:rgba(212,136,58,0.12);
-  --green:#4caf7d;--green-dim:rgba(76,175,125,0.12);
-  --blue:#5b8af0;--blue-dim:rgba(91,138,240,0.12);
-  --shadow:0 8px 32px rgba(0,0,0,0.4);
+  --bg:#0c0e16;--surface:#14172280;--surface2:#1a1e2d;
+  --border:#232840;--border2:#2e3452;
+  --gold:#d4a843;--gold2:#efc25c;--gold-dim:rgba(212,168,67,0.10);
+  --text:#ece6d6;--text-mid:#8e886e;--text-dim:#555040;
+  --red:#e05656;--red-dim:rgba(224,86,86,0.10);
+  --orange:#e0943a;--orange-dim:rgba(224,148,58,0.10);
+  --green:#3dbe7c;--green-dim:rgba(61,190,124,0.10);
+  --blue:#6090f0;--blue-dim:rgba(96,144,240,0.10);
+  --shadow:0 4px 24px rgba(0,0,0,0.45);
+  --radius:10px;
 }
 body.light-theme{
-  --bg:#f5f5f0;--surface:#ffffff;--surface2:#f0ede6;
-  --border:#ddd8cc;--border2:#ccc6b8;
-  --gold:#b8860b;--gold2:#c9a84c;--gold-dim:rgba(184,134,11,0.15);
-  --text:#1a1a1a;--text-mid:#555544;--text-dim:#888877;
-  --shadow:0 4px 24px rgba(0,0,0,0.10);
+  --bg:#f7f6f1;--surface:#ffffff;--surface2:#f2efe7;
+  --border:#e2ddd0;--border2:#d1cabb;
+  --gold:#b08508;--gold2:#c9a130;--gold-dim:rgba(176,133,8,0.12);
+  --text:#1a1a18;--text-mid:#5a5748;--text-dim:#928e7e;
+  --shadow:0 2px 16px rgba(0,0,0,0.08);
 }
 body.light-theme #login-screen,
 body.light-theme #setup-wizard{
@@ -89,7 +90,40 @@ body.light-theme .btn-ghost{
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+::selection{background:var(--gold-dim);color:var(--gold);}
+
+/* ── ALERT BANNER ── */
+.alert-strip{padding:10px 20px;display:flex;align-items:center;gap:12px;font-size:12px;font-weight:500;border-bottom:1px solid var(--border);animation:slideDown .3s ease;}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.alert-strip.danger{background:rgba(224,86,86,0.08);color:var(--red);border-left:3px solid var(--red);}
+.alert-strip.warning{background:rgba(224,148,58,0.06);color:var(--orange);border-left:3px solid var(--orange);}
+.alert-strip .alert-count{background:var(--red);color:white;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;}
+.alert-strip .alert-items{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.alert-strip .alert-link{color:var(--gold);cursor:pointer;white-space:nowrap;font-weight:600;}
+.alert-strip .alert-link:hover{text-decoration:underline;}
+
+/* ── ACTIVITY LOG ── */
+.activity-list{padding:14px 18px;display:flex;flex-direction:column;gap:6px;}
+.act-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:13px;transition:background .15s;}
+.act-item:hover{background:var(--surface);}
+.act-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.act-body{flex:1;min-width:0;}
+.act-body strong{color:var(--text);}
+.act-body .act-desc{color:var(--text-mid);font-size:12px;margin-top:2px;}
+.act-time{font-size:11px;color:var(--text-dim);white-space:nowrap;margin-top:2px;}
+
+/* ── RECURRING BADGE ── */
+.rec-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--blue);background:var(--blue-dim);padding:1px 6px;border-radius:10px;margin-left:5px;}
+
+/* ── DOSYA GROUP ── */
+.dosya-group{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+.dosya-group:hover{border-color:var(--border2);}
+.dosya-header{padding:12px 16px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:10px;}
+.dosya-header:hover{background:var(--surface);}
+.dosya-num{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--gold);}
+.dosya-meta{font-size:11px;color:var(--text-mid);display:flex;gap:12px;align-items:center;}
+.dosya-body{border-top:1px solid var(--border);}
 
 /* ── SETUP WIZARD ── */
 #setup-wizard{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -162,7 +196,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* ── APP ── */
 #app{display:none;flex-direction:column;min-height:100vh;}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
 .brand{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);letter-spacing:1.5px;white-space:nowrap;}
 .tsep{width:1px;height:24px;background:var(--border);margin:0 12px;flex-shrink:0;}
 .cur-user{display:flex;align-items:center;gap:7px;font-size:13px;overflow:hidden;}
@@ -176,9 +210,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 
 /* ── TABS ── */
-.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;overflow-x:auto;}
-.tab{padding:13px 18px;font-size:13px;font-weight:500;color:var(--text-mid);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
-.tab:hover{color:var(--text);}
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;overflow-x:auto;gap:2px;}
+.tab{padding:11px 14px;font-size:12px;font-weight:500;color:var(--text-mid);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.02);}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 
 /* ── CONTENT ── */
@@ -186,19 +220,21 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:border-color .15s;}
+.stat-card:hover{border-color:var(--border2);}
 .stat-icon{font-size:20px;}
 .snum{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;line-height:1;}
-.slbl{font-size:11px;color:var(--text-mid);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+.slbl{font-size:10px;color:var(--text-mid);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
 
 /* PANEL */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:18px;overflow:hidden;}
-.ph{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
-.ph-title{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;transition:border-color .15s;}
+.panel:hover{border-color:var(--border2);}
+.ph{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.ph-title{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);}
 
 /* FORM */
 .add-form{padding:16px 18px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end;border-bottom:1px solid var(--border);}
-.add-row2{padding:0 18px 14px;display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:10px;align-items:end;}
+.add-row2{padding:0 18px 14px;display:grid;grid-template-columns:1fr 1fr 1fr 1.5fr auto;gap:10px;align-items:end;}
 .fg{display:flex;flex-direction:column;gap:4px;}
 .fg label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-mid);}
 .fg input,.fg select{background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
@@ -226,8 +262,8 @@ table{width:100%;border-collapse:collapse;}
 th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);background:var(--surface2);border-bottom:1px solid var(--border);}
 td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(255,255,255,.015);}
-tr.done-row td{opacity:.4;}
+tr:hover td{background:rgba(212,168,67,.02);}
+tr.done-row td{opacity:.35;}
 
 /* SBADGE */
 .sb{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
@@ -315,7 +351,7 @@ tr.done-row td{opacity:.4;}
 .today-item-meta{font-size:11px;color:var(--text-mid);}
 /* DIGER ISLER FORM */
 .di-form{padding:16px 18px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end;border-bottom:1px solid var(--border);}
-.di-row2{padding:0 18px 14px;display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end;}
+.di-row2{padding:0 18px 14px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1.5fr auto;gap:10px;align-items:end;}
 /* EXPORT BTNS */
 .export-bar{display:flex;gap:8px;flex-wrap:wrap;}
 .btn-excel{background:rgba(33,115,70,0.15);color:#4caf7d;border:1px solid rgba(76,175,125,0.3);padding:6px 13px;border-radius:6px;cursor:pointer;font-family:"Outfit",sans-serif;font-size:12px;font-weight:600;transition:all .2s;}
@@ -500,6 +536,7 @@ tr.done-row td{opacity:.4;}
       <button class="tb-btn" onclick="logout()">↩ Çıkış</button>
     </div>
   </div>
+  <div id="alert-container"></div>
   <div class="tabs" id="tabs"></div>
   <div class="content" id="ca"></div>
 </div>
@@ -547,6 +584,7 @@ tr.done-row td{opacity:.4;}
       <div class="fg"><label>Teslim Tarihi *</label><input id="etes" type="date"></div>
       <div class="fg"><label>Öncelik</label><select id="ep"><option value="acil">🔴 Acil</option><option value="yuksek">🟠 Yüksek</option><option value="orta">🟡 Orta</option><option value="dusuk">🟢 Düşük</option></select></div>
       <div class="fg"><label>Atanan</label><select id="ea"></select></div>
+      <div class="fg"><label>🔁 Tekrar</label><select id="erec"></select></div>
       <div class="fg efull"><label>Notlar</label><input id="en" type="text"></div>
       <div class="fg efull"><label>📎 Belge / Link</label><input id="elink" type="text" placeholder="https://... veya UYAP referansı"></div>
       <div class="fg efull"><label>🔒 Görünürlük</label><div id="evis" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0;"></div><div style="font-size:11px;color:var(--text-mid);">Seçili değilse herkes görür. Gizlemek için kimlerin göreceğini seçin.</div></div>
@@ -582,6 +620,7 @@ tr.done-row td{opacity:.4;}
       <div class="fg"><label>Geliş Tarihi</label><input id="deg" type="date"></div>
       <div class="fg"><label>Teslim Tarihi *</label><input id="ded" type="date"></div>
       <div class="fg"><label>Kim Yapacak</label><select id="dea"></select></div>
+      <div class="fg"><label>🔁 Tekrar</label><select id="derec"></select></div>
       <div class="fg"><label>Onay Bilgisi</label><input id="deo" type="text"></div>
       <div class="fg efull"><label>Notlar</label><input id="den" type="text"></div>
       <div class="fg efull"><label>📎 Belge / Link</label><input id="delink" type="text" placeholder="https://... veya referans no"></div>
@@ -663,6 +702,17 @@ tr.done-row td{opacity:.4;}
     <div id="calday-content"></div>
     <div class="modal-actions">
       <button class="btn btn-gold" onclick="document.getElementById('calday-modal').classList.remove('open')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- Activity Detail Modal -->
+<div class="modal-overlay" id="activity-modal">
+  <div class="modal" style="width:580px;max-height:80vh;overflow-y:auto;">
+    <h3>📋 İş Geçmişi</h3>
+    <div id="activity-detail-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="document.getElementById('activity-modal').classList.remove('open')">Kapat</button>
     </div>
   </div>
 </div>
@@ -1027,17 +1077,7 @@ async function submitPwdLogin(){
 }
 
 function showTodayBanner(){
-  // Show today's and overdue digerIsler
-  const urgent = digerIsler.filter(d=>!d.done && diff(d.teslim_tarihi)<=0);
-  const myUrgent = isAdmin() ? urgent : urgent.filter(d=>d.atanan===cu.idx);
-  if(!myUrgent.length) return;
-  const html = '<div class="today-banner"><h3>🔔 Bugün ve Gecikmeli Diğer İşler ('+myUrgent.length+')</h3>'+
-    myUrgent.map(d=>{
-      const d2=diff(d.teslim_tarihi);
-      return '<div class="today-item '+(d2<0?'':'last-day')+'"><div class="today-item-info"><div class="today-item-name">'+d.isim+'</div><div class="today-item-meta">'+uchip(d.atanan)+' · Teslim: '+fmt(d.teslim_tarihi)+(d2<0?' · <span style="color:var(--red)">'+Math.abs(d2)+' gün geçti</span>':' · <span style="color:var(--orange)">Bugün!</span>')+'</div></div><div class="prio"><div class="pd '+d.oncelik+'"></div></div></div>';
-    }).join('')+'</div>';
-  const ca=document.getElementById('ca');
-  ca.innerHTML = html + ca.innerHTML;
+  // Replaced by persistent renderAlertBanner() system
 }
 function logout(){
   cu=null;if(syncTimer)clearInterval(syncTimer);
@@ -1080,18 +1120,22 @@ function renderTabs(){
     {id:'all',lbl:'📋 Tüm İşler'},
     {id:'mine',lbl:'👤 Benim İşlerim'},
     {id:'dava',lbl:'⚖️ Dava Dosyaları'},
+    {id:'dosyalar',lbl:'📁 Dosya Görünümü'},
     {id:'team',lbl:'📊 Ekip Özeti'},
     {id:'approvals',lbl:'✅ Onaylar'+badge(pendAll)},
     {id:'diger',lbl:'📝 Diğer İşler'},
     {id:'calendar',lbl:'📅 Takvim'},
+    {id:'activity',lbl:'📜 Aktivite'},
     {id:'reports',lbl:'📈 Raporlar'},
     {id:'search',lbl:'🔍 Arama'},
   ]:[
     {id:'all',lbl:'📋 Tüm İşler'},
     {id:'mine',lbl:'👤 Benim İşlerim'},
     {id:'dava',lbl:'⚖️ Dava Dosyaları'},
+    {id:'dosyalar',lbl:'📁 Dosya Görünümü'},
     {id:'diger',lbl:'📝 Diğer İşler'},
     {id:'calendar',lbl:'📅 Takvim'},
+    {id:'activity',lbl:'📜 Aktivite'},
     {id:'search',lbl:'🔍 Arama'},
   ];
   document.getElementById('tabs').innerHTML=atabs.map(t=>`<div class="tab ${tab===t.id?'active':''}" onclick="swTab('${t.id}')">${t.lbl}</div>`).join('');
@@ -1157,15 +1201,18 @@ function dateRangeBarHtml(ctx){
 // ── CONTENT ──
 function renderContent(){
   const ca=document.getElementById('ca');
+  renderAlertBanner();
   if(tab==='dashboard')ca.innerHTML=renderDashboard();
   else if(tab==='mine')ca.innerHTML=renderMine();
   else if(tab==='all')ca.innerHTML=renderAll();
   else if(tab==='dava')ca.innerHTML=renderDava();
+  else if(tab==='dosyalar')ca.innerHTML=renderDosyalar();
   else if(tab==='team')ca.innerHTML=renderTeam();
   else if(tab==='approvals')ca.innerHTML=renderApprovals();
   else if(tab==='diger')ca.innerHTML=renderDiger();
   else if(tab==='reports')ca.innerHTML=renderReports();
   else if(tab==='calendar')ca.innerHTML=renderCalendar();
+  else if(tab==='activity')ca.innerHTML=renderActivity();
   else if(tab==='search')ca.innerHTML=renderSearch();
 }
 
@@ -1221,6 +1268,7 @@ function addFormHtml(admin){
     <div class="add-row2">
       <div class="fg"><label>📬 Tebligat Tarihi</label><input id="fteb" type="date" value="${today()}"></div>
       <div class="fg"><label>📅 Teslim Tarihi *</label><input id="ftes" type="date" value="${today()}"></div>
+      <div class="fg"><label>🔁 Tekrar</label>${recurrenceSelectHtml('frec','none')}</div>
       <div class="fg"><label>Notlar</label><input id="fn" type="text" placeholder="Ek açıklama..."></div>
       <div class="fg" style="flex-direction:row;align-items:flex-end;"><button class="btn btn-gold" onclick="addT(true)">➕ Ekle</button></div>
     </div>
@@ -1241,7 +1289,7 @@ function tblHtml(arr,showU){
     const canResubmit=!isAdmin()&&t.atanan===cu.idx&&t.rejected&&!t.done&&!t.pending;
     return`<tr class="${t.done?'done-row':''}">
       <td>${sbadge(d,t.done,t.pending,t.rejected)}</td>
-      <td><strong style="font-size:13px">${t.mahkeme||'—'}</strong>${t.visList&&t.visList.length>0?'<span title="Gizli iş" style="margin-left:5px;font-size:11px;color:var(--gold)">🔒</span>':''}${t.link?`<a href="${t.link}" target="_blank" title="${t.link}" style="margin-left:5px;font-size:11px;color:var(--blue);">📎</a>`:''}
+      <td><strong style="font-size:13px">${t.mahkeme||'—'}</strong>${recBadgeHtml(t)}${t.visList&&t.visList.length>0?'<span title="Gizli iş" style="margin-left:5px;font-size:11px;color:var(--gold)">🔒</span>':''}${t.link?`<a href="${t.link}" target="_blank" title="${t.link}" style="margin-left:5px;font-size:11px;color:var(--blue);">📎</a>`:''}
         ${t.rejected&&t.rejectionNote?`<div style="margin-top:3px;font-size:11px;color:var(--red);background:var(--red-dim);padding:3px 8px;border-radius:5px;">📝 ${t.rejectionNote}</div>`:''}
       </td>
       <td style="color:var(--text-mid);font-size:12px">${t.dosya_no||'—'}</td>
@@ -1258,6 +1306,7 @@ function tblHtml(arr,showU){
         ${canAppr?`<button class="bappr" style="padding:4px 10px;font-size:11px;" onclick="approveT(${t.id})">✓</button>`:''}
         ${isAdmin()&&t.pending?`<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal(${t.id},'dava')">↩</button>`:''}
         ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="openEdit(${t.id})">✏️</button>`:''}
+        ${t.history&&t.history.length?`<button class="btn btn-ghost btn-sm" onclick="showItemHistory(${t.id},'dava')" title="Geçmiş">📜</button>`:''}
         ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="delT(${t.id})" style="color:var(--red);border-color:rgba(217,79,79,.2)">🗑</button>`:''}
       </div></td>
     </tr>`;
@@ -1538,7 +1587,8 @@ async function addDigerFromAll(){
   const teslim=document.getElementById('all-dfd')?.value;
   if(!isim||!teslim){toast('⚠️ İş adı ve teslim tarihi zorunludur!');return;}
   const at=parseInt(document.getElementById('all-dfa')?.value??cu.idx);
-  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('all-dft')?.value||'',oncelik:document.getElementById('all-dfp')?.value||'orta',gelis_tarihi:document.getElementById('all-dfg')?.value||'',teslim_tarihi:teslim,atanan:at,onay:(document.getElementById('all-dfo')?.value||'').trim(),not:(document.getElementById('all-dfn')?.value||'').trim(),done:false});
+  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('all-dft')?.value||'',oncelik:document.getElementById('all-dfp')?.value||'orta',gelis_tarihi:document.getElementById('all-dfg')?.value||'',teslim_tarihi:teslim,atanan:at,onay:(document.getElementById('all-dfo')?.value||'').trim(),not:(document.getElementById('all-dfn')?.value||'').trim(),done:false,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]});
+  logActivity('Diğer iş eklendi',isim,'diger',isim);
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('✅ '+users[at].name+' için diğer iş eklendi');
 }
 let teamFilter=-1;
@@ -1663,7 +1713,10 @@ async function addT(admin){
   const tes=document.getElementById('ftes')?.value;
   if(!mah||!tes){toast('⚠️ Mahkeme/kurum ve teslim tarihi zorunludur!');return;}
   const at=admin?parseInt(document.getElementById('fa')?.value||'0'):cu.idx;
-  tasks.push({id:Date.now(),mahkeme:mah,dosya_no:(document.getElementById('fdn')?.value||'').trim(),tur:document.getElementById('ft')?.value||'',tebligat_tarihi:document.getElementById('fteb')?.value||'',teslim_tarihi:tes,oncelik:document.getElementById('fp')?.value||'orta',not:(document.getElementById('fn')?.value||'').trim(),atanan:at,done:false,pending:false});
+  const rec=document.getElementById('frec')?.value||'none';
+  const newTask={id:Date.now(),mahkeme:mah,dosya_no:(document.getElementById('fdn')?.value||'').trim(),tur:document.getElementById('ft')?.value||'',tebligat_tarihi:document.getElementById('fteb')?.value||'',teslim_tarihi:tes,oncelik:document.getElementById('fp')?.value||'orta',not:(document.getElementById('fn')?.value||'').trim(),atanan:at,done:false,pending:false,recurrence:rec,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]};
+  tasks.push(newTask);
+  logActivity('Dava işi eklendi',mah,'dava',mah);
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast(`✅ ${users[at].name} için eklendi`);
 }
 async function markDone(id){
@@ -1671,16 +1724,19 @@ async function markDone(id){
   if(settings.davaOnay!==false&&!isAdmin()&&t.atanan===cu.idx){
     t.pending=true;t.history=t.history||[];
     t.history.push({action:'Onay gönderildi',user:cu.name,date:new Date().toISOString()});
+    logActivity('Onaya gönderildi',t.mahkeme,'dava',t.mahkeme);
     showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();
     toast('⏳ Tamamlandı — yönetici onayı bekleniyor');
   } else {
     t.done=true;t.pending=false;t.rejected=false;t.history=t.history||[];
     t.history.push({action:'Tamamlandı',user:cu.name,date:new Date().toISOString()});
+    logActivity('Tamamlandı',t.mahkeme,'dava',t.mahkeme);
+    await createRecurringCopy(t,'dava');
     showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();
     toast('✅ Tamamlandı');
   }
 }
-async function approveT(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=true;t.pending=false;t.rejectionNote='';t.history=t.history||[];t.history.push({action:'Onaylandı',user:cu.name,date:new Date().toISOString()});showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();toast('✅ Onaylandı');}
+async function approveT(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=true;t.pending=false;t.rejectionNote='';t.history=t.history||[];t.history.push({action:'Onaylandı',user:cu.name,date:new Date().toISOString()});logActivity('Onaylandı',t.mahkeme,'dava',t.mahkeme);await createRecurringCopy(t,'dava');showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();toast('✅ Onaylandı');}
 
 // Reject modal state
 let _rejectId=null,_rejectType=null;
@@ -1729,7 +1785,7 @@ async function resubmitDiger(id){
   d.history=d.history||[];d.history.push({action:'Tekrar onaya gönderildi',user:cu.name,date:new Date().toISOString()});
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();toast('📤 Tekrar onaya gönderildi');
 }
-async function delT(id){if(!confirm('Bu kaydı silmek istediğinizden emin misiniz?'))return;tasks=tasks.filter(t=>t.id!==id);showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('🗑 Silindi');}
+async function delT(id){if(!confirm('Bu kaydı silmek istediğinizden emin misiniz?'))return;const t=tasks.find(x=>x.id===id);logActivity('Silindi',t?t.mahkeme:'','dava',t?t.mahkeme:'');tasks=tasks.filter(t=>t.id!==id);showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('🗑 Silindi');}
 function openEdit(id){
   const t=tasks.find(x=>x.id===id);if(!t)return;eid=id;
   document.getElementById('ei').value=t.mahkeme||'';
@@ -1741,6 +1797,7 @@ function openEdit(id){
   document.getElementById('ea').innerHTML=users.map((u,i)=>`<option value="${i}" ${i===t.atanan?'selected':''}>${u.name}</option>`).join('');
   document.getElementById('en').value=t.not||'';
   document.getElementById('elink').value=t.link||'';
+  document.getElementById('erec').innerHTML=RECURRENCE_OPTIONS.map(o=>`<option value="${o.id}" ${o.id===(t.recurrence||'none')?'selected':''}>${o.l}</option>`).join('');
   document.getElementById('evis').innerHTML=visCheckboxHtml('evis',t.visList||[]);
   document.getElementById('edit-modal').classList.add('open');
 }
@@ -1756,7 +1813,10 @@ async function saveEdit(){
   t.atanan=parseInt(document.getElementById('ea').value);
   t.not=document.getElementById('en').value.trim();
   t.link=document.getElementById('elink').value.trim();
+  t.recurrence=document.getElementById('erec').value||'none';
   t.visList=getVisSelected('evis');
+  t.history=t.history||[];t.history.push({action:'Düzenlendi',user:cu.name,date:new Date().toISOString()});
+  logActivity('Düzenlendi',t.mahkeme,'dava',t.mahkeme);
   showLoading('Kaydediliyor...');await pushData();hideLoading();closeEdit();renderContent();toast('💾 Güncellendi');
 }
 function setF(f){filt=f;renderContent();}
@@ -1941,7 +2001,8 @@ async function addDigerMine(){
   const teslim=document.getElementById('mdfd')?.value;
   if(!isim||!teslim){toast('⚠️ İş adı ve teslim tarihi zorunludur!');return;}
   const at=parseInt(document.getElementById('mdfa')?.value??cu.idx);
-  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('mdft')?.value||'',oncelik:document.getElementById('mdfp')?.value||'orta',gelis_tarihi:document.getElementById('mdfg')?.value||'',teslim_tarihi:teslim,atanan:at,onay:(document.getElementById('mdfo')?.value||'').trim(),not:(document.getElementById('mdfn')?.value||'').trim(),done:false});
+  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('mdft')?.value||'',oncelik:document.getElementById('mdfp')?.value||'orta',gelis_tarihi:document.getElementById('mdfg')?.value||'',teslim_tarihi:teslim,atanan:at,onay:(document.getElementById('mdfo')?.value||'').trim(),not:(document.getElementById('mdfn')?.value||'').trim(),done:false,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]});
+  logActivity('Diğer iş eklendi',isim,'diger',isim);
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('✅ '+users[at].name+' için diğer iş eklendi');
 }
 
@@ -1971,6 +2032,7 @@ function renderDiger(){
     '<div class="di-row2">'+
       '<div class="fg"><label>📬 Geliş Tarihi</label><input id="dfg" type="date" value="'+today()+'"></div>'+
       '<div class="fg"><label>📅 Teslim Tarihi *</label><input id="dfd" type="date" value="'+today()+'"></div>'+
+      '<div class="fg"><label>🔁 Tekrar</label>'+recurrenceSelectHtml('dfrec','none')+'</div>'+
       '<div class="fg"><label>Onay Bilgisi</label><input id="dfo" type="text" placeholder="Onay veren / şekli..."></div>'+
       '<div class="fg"><label>Notlar</label><input id="dfn" type="text" placeholder="Açıklama..."></div>'+
       '<div class="fg" style="flex-direction:row;align-items:flex-end;"><button class="btn btn-gold" onclick="addDiger()">➕ Ekle</button></div>'+
@@ -2004,7 +2066,7 @@ function digerTblHtml(arr){
     const canResubmit=d.rejected&&!d.done&&!d.pending&&d.atanan===cu.idx;
     return '<tr class="'+(d.done?'done-row':'')+'">'+
       '<td>'+sbadge(dv,d.done,false,d.rejected)+'</td>'+
-      '<td><strong>'+d.isim+'</strong>'+(d.visList&&d.visList.length>0?'<span title="Gizli iş" style="margin-left:5px;font-size:11px;color:var(--gold)">🔒</span>':'')+(d.link?'<a href="'+d.link+'" target="_blank" title="'+d.link+'" style="margin-left:5px;font-size:11px;color:var(--blue);">📎</a>':'')+
+      '<td><strong>'+d.isim+'</strong>'+recBadgeHtml(d)+(d.visList&&d.visList.length>0?'<span title="Gizli iş" style="margin-left:5px;font-size:11px;color:var(--gold)">🔒</span>':'')+(d.link?'<a href="'+d.link+'" target="_blank" title="'+d.link+'" style="margin-left:5px;font-size:11px;color:var(--blue);">📎</a>':'')+
         (d.rejected&&d.rejectionNote?'<div style="margin-top:3px;font-size:11px;color:var(--red);background:var(--red-dim);padding:3px 8px;border-radius:5px;">📝 '+d.rejectionNote+'</div>':'')+
       '</td>'+
       '<td style="font-size:12px;color:var(--text-mid)">'+( d.tur||'—')+'</td>'+
@@ -2022,6 +2084,7 @@ function digerTblHtml(arr){
         (d.done?'<button class="btn btn-ghost btn-sm" onclick="undoneDiger('+d.id+')">↩</button>':'')+
         (isAdmin()&&d.pending?'<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal('+d.id+',\'diger\')">↩ Not</button>':'')+
         (isAdmin()||d.atanan===cu.idx?'<button class="btn btn-ghost btn-sm" onclick="openEditDiger('+d.id+')">✏️</button>':'')+
+        (d.history&&d.history.length?'<button class="btn btn-ghost btn-sm" onclick="showItemHistory('+d.id+',\'diger\')" title="Geçmiş">📜</button>':'')+
         (isAdmin()?'<button class="btn btn-ghost btn-sm" onclick="delDiger('+d.id+')" style="color:var(--red);border-color:rgba(217,79,79,.2)">🗑</button>':'')+
       '</div></td>'+
     '</tr>';
@@ -2034,6 +2097,7 @@ async function addDiger(){
   const teslim=document.getElementById('dfd')?.value;
   if(!isim||!teslim){toast('⚠️ İş adı ve teslim tarihi zorunludur!');return;}
   const at=isAdmin()?parseInt(document.getElementById('dfa')?.value||cu.idx):cu.idx;
+  const rec=document.getElementById('dfrec')?.value||'none';
   digerIsler.push({
     id:Date.now(),isim,
     tur:document.getElementById('dft')?.value||'',
@@ -2042,8 +2106,10 @@ async function addDiger(){
     oncelik:document.getElementById('dfp')?.value||'orta',
     onay:(document.getElementById('dfo')?.value||'').trim(),
     not:(document.getElementById('dfn')?.value||'').trim(),
-    atanan:at,done:false
+    atanan:at,done:false,recurrence:rec,
+    history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]
   });
+  logActivity('Diğer iş eklendi',isim,'diger',isim);
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();
   toast('✅ '+users[at].name+' için diğer iş eklendi');
 }
@@ -2051,19 +2117,22 @@ async function doneDiger(id){
   const d=digerIsler.find(x=>x.id===id);if(!d)return;
   if(settings.digerOnay&&!isAdmin()){
     d.pending=true;d.done=false;
+    logActivity('Onaya gönderildi',d.isim,'diger',d.isim);
     showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();
     toast('⏳ Tamamlandı — yönetici onayı bekleniyor');
   } else {
     d.done=true;d.pending=false;
     d.history=d.history||[];
     d.history.push({action:'Tamamlandı',user:cu.name,date:new Date().toISOString()});
+    logActivity('Tamamlandı',d.isim,'diger',d.isim);
+    await createRecurringCopy(d,'diger');
     showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('✅ Tamamlandı');
   }
 }
-async function approveDiger(id){const d=digerIsler.find(x=>x.id===id);if(!d)return;d.done=true;d.pending=false;d.rejected=false;d.rejectionNote='';d.history=d.history||[];d.history.push({action:'Onaylandı',user:cu.name,date:new Date().toISOString()});showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();toast('✅ Onaylandı');}
+async function approveDiger(id){const d=digerIsler.find(x=>x.id===id);if(!d)return;d.done=true;d.pending=false;d.rejected=false;d.rejectionNote='';d.history=d.history||[];d.history.push({action:'Onaylandı',user:cu.name,date:new Date().toISOString()});logActivity('Onaylandı',d.isim,'diger',d.isim);await createRecurringCopy(d,'diger');showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();renderTabs();toast('✅ Onaylandı');}
 function rejectDiger(id){openRejectModal(id,'diger');}
 async function undoneDiger(id){const d=digerIsler.find(x=>x.id===id);if(d){d.done=false;showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('↩ Geri alındı');}}
-async function delDiger(id){if(!confirm('Bu kaydı silmek istediğinizden emin misiniz?'))return;digerIsler=digerIsler.filter(x=>x.id!==id);showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('🗑 Silindi');}
+async function delDiger(id){if(!confirm('Bu kaydı silmek istediğinizden emin misiniz?'))return;const d=digerIsler.find(x=>x.id===id);logActivity('Silindi',d?d.isim:'','diger',d?d.isim:'');digerIsler=digerIsler.filter(x=>x.id!==id);showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('🗑 Silindi');}
 
 // ── EXPORT FUNCTIONS ──
 function exportDigerExcel(){
@@ -2463,6 +2532,7 @@ function openEditDiger(id){
   document.getElementById('deo').value=d.onay||'';
   document.getElementById('den').value=d.not||'';
   document.getElementById('delink').value=d.link||'';
+  document.getElementById('derec').innerHTML=RECURRENCE_OPTIONS.map(o=>'<option value="'+o.id+'"'+(o.id===(d.recurrence||'none')?' selected':'')+'>'+o.l+'</option>').join('');
   document.getElementById('devis').innerHTML=visCheckboxHtml('devis',d.visList||[]);
   document.getElementById('diger-edit-modal').classList.add('open');
 }
@@ -2481,7 +2551,10 @@ async function saveEditDiger(){
   d.onay=document.getElementById('deo').value.trim();
   d.not=document.getElementById('den').value.trim();
   d.link=document.getElementById('delink').value.trim();
+  d.recurrence=document.getElementById('derec').value||'none';
   d.visList=getVisSelected('devis');
+  d.history=d.history||[];d.history.push({action:'Düzenlendi',user:cu.name,date:new Date().toISOString()});
+  logActivity('Düzenlendi',d.isim,'diger',d.isim);
   showLoading('Kaydediliyor...');await pushData();hideLoading();closeEditDiger();renderContent();toast('💾 Güncellendi');
 }
 
@@ -2661,9 +2734,343 @@ function checkAndNotify(){
 // (Link alanı openEdit ve openEditDiger içinde doldurulur, saveEdit/saveEditDiger içinde kaydedilir)
 
 // Modal close on overlay
-['names-modal','share-modal','edit-modal','pwd-modal','diger-edit-modal','theme-modal','settings-modal','reject-modal','calday-modal'].forEach(id=>{
+['names-modal','share-modal','edit-modal','pwd-modal','diger-edit-modal','theme-modal','settings-modal','reject-modal','calday-modal','activity-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
+
+// ═══════════════════════════════════════════
+// 🔔 KALICI UYARI BANNER SİSTEMİ
+// ═══════════════════════════════════════════
+function renderAlertBanner(){
+  const el=document.getElementById('alert-container');
+  if(!el||!cu)return;
+  const warn=settings.warnDays||3;
+  const overdue=[
+    ...tasks.filter(t=>canSee(t)&&!t.done&&!t.pending&&diff(t.teslim_tarihi)<0),
+    ...digerIsler.filter(d=>canSee(d)&&!d.done&&!d.pending&&diff(d.teslim_tarihi)<0)
+  ].filter(x=>isAdmin()||x.atanan===cu.idx);
+
+  const todayItems=[
+    ...tasks.filter(t=>canSee(t)&&!t.done&&!t.pending&&diff(t.teslim_tarihi)===0),
+    ...digerIsler.filter(d=>canSee(d)&&!d.done&&!d.pending&&diff(d.teslim_tarihi)===0)
+  ].filter(x=>isAdmin()||x.atanan===cu.idx);
+
+  const soonItems=[
+    ...tasks.filter(t=>canSee(t)&&!t.done&&!t.pending&&diff(t.teslim_tarihi)>0&&diff(t.teslim_tarihi)<=warn),
+    ...digerIsler.filter(d=>canSee(d)&&!d.done&&!d.pending&&diff(d.teslim_tarihi)>0&&diff(d.teslim_tarihi)<=warn)
+  ].filter(x=>isAdmin()||x.atanan===cu.idx);
+
+  let html='';
+  if(overdue.length){
+    const names=overdue.slice(0,3).map(x=>x.mahkeme||x.isim||'—').join(', ');
+    html+=`<div class="alert-strip danger">
+      <span style="font-size:16px">🚨</span>
+      <span class="alert-count">${overdue.length}</span>
+      <span class="alert-items"><strong>Gecikmiş:</strong> ${names}${overdue.length>3?' ...':''}</span>
+      <span class="alert-link" onclick="swTab('dashboard')">Görüntüle →</span>
+    </div>`;
+  }
+  if(todayItems.length){
+    const names=todayItems.slice(0,3).map(x=>x.mahkeme||x.isim||'—').join(', ');
+    html+=`<div class="alert-strip warning">
+      <span style="font-size:16px">🔥</span>
+      <span class="alert-count">${todayItems.length}</span>
+      <span class="alert-items"><strong>Bugün teslim:</strong> ${names}${todayItems.length>3?' ...':''}</span>
+      <span class="alert-link" onclick="swTab('dashboard')">Görüntüle →</span>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════
+// 📜 AKTİVİTE LOG SİSTEMİ
+// ═══════════════════════════════════════════
+let activityLog=[];
+function logActivity(action,detail,itemType,itemName){
+  activityLog.unshift({
+    id:Date.now(),
+    action,
+    detail:detail||'',
+    itemType:itemType||'',
+    itemName:itemName||'',
+    user:cu?cu.name:'Sistem',
+    userIdx:cu?cu.idx:0,
+    date:new Date().toISOString()
+  });
+  if(activityLog.length>200) activityLog=activityLog.slice(0,200);
+}
+
+function renderActivity(){
+  const actFilterOpts=[
+    {id:'all',l:'Tümü'},{id:'add',l:'➕ Eklemeler'},{id:'done',l:'✅ Tamamlamalar'},
+    {id:'edit',l:'✏️ Düzenlemeler'},{id:'delete',l:'🗑 Silmeler'},{id:'approve',l:'✓ Onaylar'}
+  ];
+  const actFilt=window._actFilt||'all';
+
+  // Gather all history from tasks and digerIsler
+  const allHistory=[];
+  tasks.forEach(t=>{
+    if(t.history){t.history.forEach(h=>{
+      allHistory.push({...h,itemType:'dava',itemName:t.mahkeme||'—',itemId:t.id});
+    });}
+  });
+  digerIsler.forEach(d=>{
+    if(d.history){d.history.forEach(h=>{
+      allHistory.push({...h,itemType:'diger',itemName:d.isim||'—',itemId:d.id});
+    });}
+  });
+  // Add from in-memory log
+  activityLog.forEach(a=>{
+    allHistory.push({action:a.action,user:a.user,date:a.date,itemType:a.itemType,itemName:a.itemName});
+  });
+
+  // Sort by date descending
+  allHistory.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  // Filter
+  const filtered=actFilt==='all'?allHistory:allHistory.filter(h=>{
+    const a=(h.action||'').toLowerCase();
+    if(actFilt==='add')return a.includes('ekle')||a.includes('oluştur');
+    if(actFilt==='done')return a.includes('tamaml');
+    if(actFilt==='edit')return a.includes('düzenle')||a.includes('güncelle');
+    if(actFilt==='delete')return a.includes('sil');
+    if(actFilt==='approve')return a.includes('onay')||a.includes('redde');
+    return true;
+  });
+
+  const actionIcon=(a)=>{
+    const al=(a||'').toLowerCase();
+    if(al.includes('tamaml')||al.includes('onaylandı'))return{icon:'✅',bg:'var(--green-dim)',color:'var(--green)'};
+    if(al.includes('ekle')||al.includes('oluştur'))return{icon:'➕',bg:'var(--blue-dim)',color:'var(--blue)'};
+    if(al.includes('sil'))return{icon:'🗑',bg:'var(--red-dim)',color:'var(--red)'};
+    if(al.includes('redde'))return{icon:'↩',bg:'var(--red-dim)',color:'var(--red)'};
+    if(al.includes('düzenle')||al.includes('güncelle'))return{icon:'✏️',bg:'var(--gold-dim)',color:'var(--gold)'};
+    if(al.includes('onay'))return{icon:'⏳',bg:'var(--blue-dim)',color:'var(--blue)'};
+    if(al.includes('geri'))return{icon:'↩',bg:'var(--orange-dim)',color:'var(--orange)'};
+    return{icon:'📋',bg:'var(--surface2)',color:'var(--text-mid)'};
+  };
+
+  const fmtDate=(d)=>{
+    const dt=new Date(d);
+    const now=new Date();
+    const diffMs=now-dt;
+    if(diffMs<60000)return 'Az önce';
+    if(diffMs<3600000)return Math.floor(diffMs/60000)+' dk önce';
+    if(diffMs<86400000)return Math.floor(diffMs/3600000)+' saat önce';
+    if(diffMs<172800000)return 'Dün';
+    return dt.toLocaleDateString('tr-TR',{day:'2-digit',month:'short'})+' '+dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  };
+
+  const items=filtered.slice(0,100).map(h=>{
+    const ai=actionIcon(h.action);
+    const tip=h.itemType==='dava'?'⚖️':'📝';
+    return`<div class="act-item">
+      <div class="act-icon" style="background:${ai.bg};color:${ai.color};">${ai.icon}</div>
+      <div class="act-body">
+        <div><strong>${h.user||'—'}</strong> — ${h.action||'—'}</div>
+        <div class="act-desc">${tip} ${h.itemName||''}</div>
+      </div>
+      <div class="act-time">${fmtDate(h.date)}</div>
+    </div>`;
+  }).join('');
+
+  return`<div class="panel">
+    <div class="ph">
+      <div class="ph-title">📜 Aktivite Geçmişi</div>
+      <div style="font-size:12px;color:var(--text-mid)">${allHistory.length} kayıt</div>
+    </div>
+    <div style="padding:10px 18px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border);">
+      ${actFilterOpts.map(o=>`<div class="fc ${actFilt===o.id?'active':''}" onclick="window._actFilt='${o.id}';renderContent()">${o.l}</div>`).join('')}
+    </div>
+    <div class="activity-list">
+      ${items||'<div style="text-align:center;padding:40px;color:var(--text-dim)"><div style="font-size:32px;margin-bottom:8px;opacity:.3">📜</div><p>Henüz aktivite kaydı yok</p></div>'}
+    </div>
+  </div>`;
+}
+
+function showItemHistory(id,type){
+  const item=type==='dava'?tasks.find(t=>t.id===id):digerIsler.find(d=>d.id===id);
+  if(!item||!item.history||!item.history.length){toast('Bu iş için geçmiş kaydı yok');return;}
+  const name=type==='dava'?item.mahkeme:item.isim;
+  document.getElementById('activity-detail-content').innerHTML=
+    `<div style="margin-bottom:14px;font-size:14px;font-weight:500;">${type==='dava'?'⚖️':'📝'} ${name||'—'}</div>`+
+    item.history.map(h=>{
+      const dt=new Date(h.date);
+      return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--text-dim);min-width:120px;">${dt.toLocaleDateString('tr-TR')}<br>${dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="font-size:13px;"><strong>${h.user||'—'}</strong> — ${h.action||'—'}</div>
+      </div>`;
+    }).join('');
+  document.getElementById('activity-modal').classList.add('open');
+}
+
+// ═══════════════════════════════════════════
+// 🔁 TEKRARLAYAN GÖREVLER
+// ═══════════════════════════════════════════
+const RECURRENCE_OPTIONS=[
+  {id:'none',l:'Tekrar Yok'},
+  {id:'daily',l:'Her Gün'},
+  {id:'weekly',l:'Her Hafta'},
+  {id:'biweekly',l:'İki Haftada Bir'},
+  {id:'monthly',l:'Her Ay'},
+  {id:'quarterly',l:'Üç Ayda Bir'}
+];
+
+function recurrenceSelectHtml(id,selected){
+  return`<select id="${id}" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;">
+    ${RECURRENCE_OPTIONS.map(o=>`<option value="${o.id}" ${o.id===selected?'selected':''}>${o.l}</option>`).join('')}
+  </select>`;
+}
+
+function getNextDate(dateStr,recurrence){
+  const d=new Date(dateStr);
+  switch(recurrence){
+    case 'daily':d.setDate(d.getDate()+1);break;
+    case 'weekly':d.setDate(d.getDate()+7);break;
+    case 'biweekly':d.setDate(d.getDate()+14);break;
+    case 'monthly':d.setMonth(d.getMonth()+1);break;
+    case 'quarterly':d.setMonth(d.getMonth()+3);break;
+    default:return null;
+  }
+  return d.toISOString().split('T')[0];
+}
+
+async function createRecurringCopy(item,type){
+  if(!item.recurrence||item.recurrence==='none')return;
+  const nextDate=getNextDate(item.teslim_tarihi,item.recurrence);
+  if(!nextDate)return;
+  if(type==='dava'){
+    const copy={...item,id:Date.now(),done:false,pending:false,rejected:false,rejectionNote:'',
+      teslim_tarihi:nextDate,
+      tebligat_tarihi:getNextDate(item.tebligat_tarihi||item.teslim_tarihi,item.recurrence)||nextDate,
+      history:[{action:'Tekrarlayan görevden oluşturuldu',user:'Sistem',date:new Date().toISOString()}]
+    };
+    tasks.push(copy);
+    logActivity('Tekrarlayan görev oluşturuldu','Sonraki teslim: '+fmt(nextDate),'dava',item.mahkeme);
+  } else {
+    const copy={...item,id:Date.now(),done:false,pending:false,rejected:false,rejectionNote:'',
+      teslim_tarihi:nextDate,
+      gelis_tarihi:today(),
+      history:[{action:'Tekrarlayan görevden oluşturuldu',user:'Sistem',date:new Date().toISOString()}]
+    };
+    digerIsler.push(copy);
+    logActivity('Tekrarlayan görev oluşturuldu','Sonraki teslim: '+fmt(nextDate),'diger',item.isim);
+  }
+}
+
+function recBadgeHtml(item){
+  if(!item.recurrence||item.recurrence==='none')return '';
+  const labels={daily:'Günlük',weekly:'Haftalık',biweekly:'2 Haftalık',monthly:'Aylık',quarterly:'3 Aylık'};
+  return `<span class="rec-badge">🔁 ${labels[item.recurrence]||''}</span>`;
+}
+
+// ═══════════════════════════════════════════
+// 📁 DOSYA BAZLI GRUPLAMA
+// ═══════════════════════════════════════════
+function renderDosyalar(){
+  const byFile={};
+  tasks.filter(t=>canSee(t)).forEach(t=>{
+    const key=(t.dosya_no||'').trim()||'Dosya No Belirtilmemiş';
+    if(!byFile[key])byFile[key]={dosya_no:key,mahkeme:t.mahkeme||'—',tasks:[],diger:[]};
+    byFile[key].tasks.push(t);
+    if(!byFile[key].mahkeme||byFile[key].mahkeme==='—')byFile[key].mahkeme=t.mahkeme||'—';
+  });
+  // Also group digerIsler that have matching identifiers
+  digerIsler.filter(d=>canSee(d)).forEach(d=>{
+    // Try to match by isim containing a dosya_no
+    let matched=false;
+    Object.keys(byFile).forEach(key=>{
+      if(key!=='Dosya No Belirtilmemiş'&&(d.isim||'').includes(key)){
+        byFile[key].diger.push(d);matched=true;
+      }
+    });
+    if(!matched){
+      const key='Diğer İşler (Dosyasız)';
+      if(!byFile[key])byFile[key]={dosya_no:key,mahkeme:'Çeşitli',tasks:[],diger:[]};
+      byFile[key].diger.push(d);
+    }
+  });
+
+  const groups=Object.values(byFile).sort((a,b)=>{
+    const aActive=a.tasks.filter(t=>!t.done).length+a.diger.filter(d=>!d.done).length;
+    const bActive=b.tasks.filter(t=>!t.done).length+b.diger.filter(d=>!d.done).length;
+    return bActive-aActive;
+  });
+
+  const totalFiles=groups.filter(g=>g.dosya_no!=='Dosya No Belirtilmemiş'&&g.dosya_no!=='Diğer İşler (Dosyasız)').length;
+
+  const groupHtml=groups.map((g,gi)=>{
+    const totalTasks=g.tasks.length+g.diger.length;
+    const activeTasks=g.tasks.filter(t=>!t.done).length+g.diger.filter(d=>!d.done).length;
+    const overdueTasks=g.tasks.filter(t=>!t.done&&diff(t.teslim_tarihi)<0).length+g.diger.filter(d=>!d.done&&diff(d.teslim_tarihi)<0).length;
+    const donePct=totalTasks?Math.round((totalTasks-activeTasks)/totalTasks*100):0;
+
+    const taskRows=g.tasks.map(t=>{
+      const d=diff(t.teslim_tarihi);
+      return`<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:13px;">
+        ${sbadge(d,t.done,t.pending,t.rejected)}
+        <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          <span style="font-size:11px;background:rgba(96,144,240,.1);color:var(--blue);padding:1px 5px;border-radius:10px;">⚖️</span>
+          <strong style="margin-left:4px;">${t.tur||'—'}</strong>
+          ${recBadgeHtml(t)}
+        </div>
+        <div style="font-size:12px;color:var(--text-mid);white-space:nowrap;">${uchip(t.atanan)}</div>
+        <div style="font-size:12px;white-space:nowrap;">${fmt(t.teslim_tarihi)}</div>
+        <div>${prio(t.oncelik)}</div>
+        ${t.history&&t.history.length?`<button class="btn btn-ghost btn-sm" onclick="showItemHistory(${t.id},'dava')" title="Geçmiş">📜</button>`:''}
+      </div>`;
+    }).join('');
+
+    const digerRows=g.diger.map(d=>{
+      const dv=diff(d.teslim_tarihi);
+      return`<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:13px;">
+        ${sbadge(dv,d.done,d.pending,d.rejected)}
+        <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          <span style="font-size:11px;background:var(--gold-dim);color:var(--gold);padding:1px 5px;border-radius:10px;">📝</span>
+          <strong style="margin-left:4px;">${d.isim||'—'}</strong>
+          ${recBadgeHtml(d)}
+        </div>
+        <div style="font-size:12px;color:var(--text-mid);white-space:nowrap;">${uchip(d.atanan)}</div>
+        <div style="font-size:12px;white-space:nowrap;">${fmt(d.teslim_tarihi)}</div>
+        <div>${prio(d.oncelik)}</div>
+      </div>`;
+    }).join('');
+
+    return`<div class="dosya-group">
+      <div class="dosya-header" onclick="this.parentElement.querySelector('.dosya-body').style.display=this.parentElement.querySelector('.dosya-body').style.display==='none'?'block':'none'">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="dosya-num">📁 ${g.dosya_no}</div>
+          <div style="font-size:12px;color:var(--text-mid);">${g.mahkeme}</div>
+        </div>
+        <div class="dosya-meta">
+          ${overdueTasks?`<span style="color:var(--red)">${overdueTasks} gecikmiş</span>`:''}
+          <span>${activeTasks} aktif</span>
+          <span>${totalTasks} toplam</span>
+          <div style="width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:${donePct}%;background:${donePct>75?'var(--green)':donePct>40?'var(--gold)':'var(--red)'};border-radius:2px;"></div>
+          </div>
+          <span style="font-size:10px;">▼</span>
+        </div>
+      </div>
+      <div class="dosya-body" style="display:${activeTasks>0?'block':'none'}">
+        ${taskRows}${digerRows}
+        ${!taskRows&&!digerRows?'<div style="padding:16px;text-align:center;color:var(--text-dim);font-size:13px;">Bu dosyada iş yok</div>':''}
+      </div>
+    </div>`;
+  }).join('');
+
+  return`
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;">
+    <div class="stat-card"><div class="stat-icon">📁</div><div><div class="snum" style="color:var(--gold)">${totalFiles}</div><div class="slbl">Dosya</div></div></div>
+    <div class="stat-card"><div class="stat-icon">📋</div><div><div class="snum" style="color:var(--blue)">${tasks.filter(t=>canSee(t)&&!t.done).length}</div><div class="slbl">Aktif Dava</div></div></div>
+    <div class="stat-card"><div class="stat-icon">⚠</div><div><div class="snum" style="color:var(--red)">${tasks.filter(t=>canSee(t)&&!t.done&&diff(t.teslim_tarihi)<0).length}</div><div class="slbl">Gecikmiş</div></div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div><div class="snum" style="color:var(--green)">${tasks.filter(t=>canSee(t)&&t.done).length}</div><div class="slbl">Tamamlanan</div></div></div>
+  </div>
+  <div class="panel">
+    <div class="ph"><div class="ph-title">📁 Dosya Bazlı Görünüm</div><div style="font-size:12px;color:var(--text-mid);">Dosyaya tıklayarak açıp kapatabilirsiniz</div></div>
+    <div style="padding:14px 18px;">${groupHtml}</div>
+  </div>`;
+}
 
 let _calDates=[];
 
