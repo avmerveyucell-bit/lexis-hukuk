@@ -1814,47 +1814,30 @@ function applyThemePreset(i){
 }
 function applyTheme(p){
   if(!p)return;
-  // Sayfadaki stylesheet :root kuralını doğrudan değiştir
-  var changed=false;
-  var sheets=document.styleSheets;
-  for(var s=0;s<sheets.length;s++){
-    try{
-      var rules=sheets[s].cssRules||sheets[s].rules;
-      if(!rules)continue;
-      for(var r=0;r<rules.length;r++){
-        if(rules[r].selectorText===':root'){
-          var st=rules[r].style;
-          st.setProperty('--bg',p.bg);
-          st.setProperty('--surface',p.surface);
-          st.setProperty('--surface2',p.surface2);
-          st.setProperty('--border',p.border);
-          st.setProperty('--border2',p.border2);
-          st.setProperty('--gold',p.gold);
-          st.setProperty('--gold2',p.gold2);
-          st.setProperty('--gold-dim',p.gold+'44');
-          st.setProperty('--text',p.text);
-          st.setProperty('--text-mid',p.textMid);
-          changed=true;
-        }
-      }
-    }catch(e){}
-  }
-  // Ayrıca inline style ile de set et
-  var h=document.documentElement;
-  h.style.setProperty('--bg',p.bg);
-  h.style.setProperty('--surface',p.surface);
-  h.style.setProperty('--surface2',p.surface2);
-  h.style.setProperty('--border',p.border);
-  h.style.setProperty('--border2',p.border2);
-  h.style.setProperty('--gold',p.gold);
-  h.style.setProperty('--gold2',p.gold2);
-  h.style.setProperty('--gold-dim',p.gold+'44');
-  h.style.setProperty('--text',p.text);
-  h.style.setProperty('--text-mid',p.textMid);
-  // Force repaint
-  document.body.style.display='none';
-  void document.body.offsetHeight;
-  document.body.style.display='';
+  const r=document.documentElement;
+  r.style.setProperty('--bg',p.bg);
+  r.style.setProperty('--surface',p.surface);
+  r.style.setProperty('--surface2',p.surface2);
+  r.style.setProperty('--border',p.border);
+  r.style.setProperty('--border2',p.border2);
+  r.style.setProperty('--gold',p.gold);
+  r.style.setProperty('--gold2',p.gold2);
+  r.style.setProperty('--gold-dim',p.gold+'44');
+  r.style.setProperty('--text',p.text);
+  r.style.setProperty('--text-mid',p.textMid);
+  let el=document.getElementById('_th');
+  if(!el){el=document.createElement('style');el.id='_th';document.head.appendChild(el);}
+  el.textContent=
+    'html,body,#app,#login-screen,#setup-wizard{background:'+p.bg+'!important;color:'+p.text+'!important;}'+
+    ':root{--bg:'+p.bg+';--surface:'+p.surface+';--surface2:'+p.surface2+';--border:'+p.border+';--border2:'+p.border2+';--gold:'+p.gold+';--gold2:'+p.gold2+';--gold-dim:'+p.gold+'44;--text:'+p.text+';--text-mid:'+p.textMid+';}'+
+    '.modal,.panel,.wcard,.stat-card,.ap-item,.setup-box,.wiz-box{background:'+p.surface+'!important;color:'+p.text+'!important;}'+
+    '.ph,.topbar,.tabs,.tab{background:'+p.surface2+'!important;}'+
+    '.tab.active{border-bottom:2px solid '+p.gold+'!important;color:'+p.gold+'!important;}'+
+    'th{background:'+p.surface2+'!important;color:'+p.text+'!important;}'+
+    'td{color:'+p.text+'!important;border-color:'+p.border+'!important;}'+
+    'input,textarea,select,.wiz-input{background:'+p.surface2+'!important;color:'+p.text+'!important;border-color:'+p.border+'!important;}'+
+    '.btn-ghost{color:'+p.text+'!important;border-color:'+p.border+'!important;}'+
+    '.modal-overlay{background:rgba(0,0,0,.75)!important;}';
 }
 
 function loadSavedTheme(){
@@ -2503,8 +2486,6 @@ function renderCalendar(){
   tasks.filter(t=>canSee(t)&&t.teslim_tarihi).forEach(t=>addItem(t.teslim_tarihi,{...t,_tip:'dava'}));
   digerIsler.filter(d=>canSee(d)&&d.teslim_tarihi).forEach(d=>addItem(d.teslim_tarihi,{...d,_tip:'diger'}));
   window._calByDate=byDate;
-  // Store all dates for index-based access from onclick
-  window._calDays=Object.keys(byDate);
   const pcolor={acil:'var(--red)',yuksek:'var(--orange)',orta:'var(--gold)',dusuk:'var(--green)'};
   let cells='';
   const startPad=(firstDay+6)%7;
@@ -2513,11 +2494,10 @@ function renderCalendar(){
     const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const items=byDate[ds]||[];
     const isToday=ds===todayStr;
-    const dayIdx=window._calDays.indexOf(ds);
     const itemsHtml=items.slice(0,3).map(function(x){
-      return '<div style="font-size:10px;padding:2px 5px;margin-bottom:2px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;border-left:3px solid '+(pcolor[x.oncelik]||'var(--gold)')+';background:var(--surface2);color:'+(x.done?'var(--text-dim)':x.rejected?'var(--red)':'var(--text)')+';">'+(x._tip==='dava'?'&#9878;':'&#128221;')+' '+(x._tip==='dava'?x.mahkeme:x.isim)+'</div>';
+      return '<div title="'+(x._tip==='dava'?x.mahkeme:x.isim)+'" style="font-size:10px;padding:2px 5px;margin-bottom:2px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;border-left:3px solid '+(pcolor[x.oncelik]||'var(--gold)')+';background:var(--surface2);color:'+(x.done?'var(--text-dim)':x.rejected?'var(--red)':'var(--text)')+';">'+(x._tip==='dava'?'&#9878;':'&#128221;')+' '+(x._tip==='dava'?x.mahkeme:x.isim)+'</div>';
     }).join('');
-    const moreBtn=items.length>3?'<button onclick="showCalDay('+dayIdx+')" style="background:var(--gold);color:#1a1a1a;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;cursor:pointer;margin-top:3px;width:100%">+'+(items.length-3)+' daha</button>':'';
+    const moreBtn=items.length>3?'<button onclick="showCalDay(this)" data-date="'+ds+'" style="background:var(--gold);color:#1a1a1a;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;cursor:pointer;margin-top:3px;width:100%">+'+(items.length-3)+' daha</button>':'';
     cells+='<td style="vertical-align:top;padding:6px;border:0.5px solid var(--border);background:'+(isToday?'rgba(201,168,76,0.08)':'var(--surface)')+';min-height:80px;min-width:80px;">';
     cells+='<div style="font-weight:'+(isToday?'700':'400')+';font-size:13px;color:'+(isToday?'var(--gold)':items.some(function(x){return !x.done;})?'var(--red)':'var(--text-mid)')+';margin-bottom:4px;">'+d+'</div>';
     cells+=itemsHtml+moreBtn+'</td>';
@@ -2536,34 +2516,16 @@ function renderCalendar(){
       '</table>'+
     '</div>'+
     '<div style="padding:12px 16px;font-size:12px;color:var(--text-mid);display:flex;gap:16px;flex-wrap:wrap;">'+
-      '<span>&#9878; Dava</span><span>&#128221; Diger</span>'+
-      '<span style="color:var(--red)">&#9632; Acil</span>'+
-      '<span style="color:var(--orange)">&#9632; Yuksek</span>'+
-      '<span style="color:var(--gold)">&#9632; Orta</span>'+
-      '<span style="color:var(--green)">&#9632; Dusuk</span>'+
+      '<span>Dava isi</span><span>Diger is</span>'+
+      '<span style="color:var(--red)">&#9632; Acil</span><span style="color:var(--orange)">&#9632; Yuksek</span>'+
+      '<span style="color:var(--gold)">&#9632; Orta</span><span style="color:var(--green)">&#9632; Dusuk</span>'+
     '</div>'+
   '</div>';
 }
 
 
-function showCalDay(idx){
-  var ds=window._calDays&&window._calDays[idx]?window._calDays[idx]:String(idx);
-  var items=(window._calByDate&&window._calByDate[ds])||[];
-  var pcolor={acil:'var(--red)',yuksek:'var(--orange)',orta:'var(--gold)',dusuk:'var(--green)'};
-  var parts=ds.split('-');
-  var y=parts[0],m=parts[1],d=parts[2];
-  document.getElementById('calday-title').textContent='Gunun Isleri: '+d+'.'+m+'.'+y+' ('+items.length+' is)';
-  document.getElementById('calday-content').innerHTML=items.length
-    ?items.map(function(x){
-        return '<div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid '+(pcolor[x.oncelik]||'var(--gold)')+';">'+
-          '<div style="font-size:12px;font-weight:600;margin-bottom:4px;">'+(x._tip==='dava'?'Dava: '+(x.mahkeme||'-'):'Diger: '+(x.isim||'-'))+'</div>'+
-          '<div style="font-size:11px;color:var(--text-mid);">'+(x.tur||'')+(x.not?' | '+x.not:'')+'</div>'+
-          '<div style="margin-top:5px;">'+sbadge(diff(x.teslim_tarihi),x.done,x.pending,x.rejected)+' '+prio(x.oncelik)+' '+uchip(x.atanan)+'</div>'+
-        '</div>';
-      }).join('')
-    :'<p style="text-align:center;padding:20px;color:var(--text-dim);">Bu gunde is yok</p>';
-  document.getElementById('calday-modal').classList.add('open');
-}
+function showCalDay(btn){
+  var ds=btn.getAttribute?btn.getAttribute("data-date"):btn;
   const items=(window._calByDate&&window._calByDate[ds])||[];
   const pcolor={acil:'var(--red)',yuksek:'var(--orange)',orta:'var(--gold)',dusuk:'var(--green)'};
   const[y,m,d]=ds.split('-');
@@ -2706,30 +2668,50 @@ const EMBEDDED_USERS=[{"name":"Merve","role":"admin","password":""},{"name":"Sev
 // ── INIT ──
 loadCreds();
 window._wsId='av_merveyucell_gmail_com';
-document.getElementById('setup-wizard').style.display='none';
-showLoading('Veriler yükleniyor...');
 
-function _doStart(){
-  readBin().then(function(data){
+async function startApp(){
+  document.getElementById('setup-wizard').style.display='none';
+  showLoading('Veriler yükleniyor...');
+  try{
+    const data=await readBin();
     users=data.users||[];tasks=data.tasks||[];digerIsler=data.digerIsler||[];
     settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},data.settings||{});
     try{localStorage.setItem('lexis_users_cache',JSON.stringify(users));}catch(e){}
-    hideLoading();renderLogin();
-  }).catch(function(){
     hideLoading();
-    var c=localStorage.getItem('lexis_users_cache');
-    users=c?JSON.parse(c):EMBEDDED_USERS;
     renderLogin();
-  });
+  }catch(e){
+    hideLoading();
+    const cached=localStorage.getItem('lexis_users_cache');
+    if(cached){try{users=JSON.parse(cached);renderLogin();return;}catch(e2){}}
+    users=EMBEDDED_USERS;
+    renderLogin();
+  }
 }
 
-// Module _fbInit'i otomatik çağırıyor, _fbReady=true olunca _onFbReady tetiklenir
-window._onFbReady=function(){_doStart();};
-
-// Eğer module çok hızlı yüklendiyse zaten _fbReady=true olabilir
-if(window._fbReady){_doStart();}
-
-
+// Firebase module hazır olunca başlat
+const cfg=loadFbConfig();
+if(window._fbReady){
+  startApp();
+} else {
+  window._onFbReady=()=>startApp();
+  // Module yüklenince _fbInit çağrılır — ama burada da çağıralım
+  if(window._fbInit){window._fbInit(cfg);}
+  else{
+    // Module henüz yüklenmediyse bekle
+    let attempts=0;
+    const waitFb=setInterval(()=>{
+      attempts++;
+      if(window._fbInit){
+        clearInterval(waitFb);
+        window._fbInit(cfg);
+      } else if(attempts>20){
+        clearInterval(waitFb);
+        // Yine de çalıştır (önbellekle)
+        startApp();
+      }
+    },100);
+  }
+}
 </script>
 </body>
 </html>
