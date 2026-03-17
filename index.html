@@ -47,6 +47,47 @@ window._fbInit(_embeddedCfg);
   --blue:#5b8af0;--blue-dim:rgba(91,138,240,0.12);
   --shadow:0 8px 32px rgba(0,0,0,0.4);
 }
+body.light-theme{
+  --bg:#f5f5f0;--surface:#ffffff;--surface2:#f0ede6;
+  --border:#ddd8cc;--border2:#ccc6b8;
+  --gold:#b8860b;--gold2:#c9a84c;--gold-dim:rgba(184,134,11,0.15);
+  --text:#1a1a1a;--text-mid:#555544;--text-dim:#888877;
+  --shadow:0 4px 24px rgba(0,0,0,0.10);
+}
+body.light-theme #login-screen,
+body.light-theme #setup-wizard{
+  background:var(--bg)!important;
+}
+body.light-theme #app,
+body.light-theme .topbar,
+body.light-theme .tabs,
+body.light-theme .panel,
+body.light-theme .modal,
+body.light-theme .wcard,
+body.light-theme .stat-card{
+  background:var(--surface)!important;
+  color:var(--text)!important;
+}
+body.light-theme .ph,
+body.light-theme th,
+body.light-theme .tab{
+  background:var(--surface2)!important;
+  color:var(--text)!important;
+}
+body.light-theme td{color:var(--text)!important;}
+body.light-theme input,
+body.light-theme textarea,
+body.light-theme select{
+  background:var(--surface2)!important;
+  color:var(--text)!important;
+  border-color:var(--border)!important;
+}
+body.light-theme .tb-btn,
+body.light-theme .btn-ghost{
+  color:var(--text)!important;
+  border-color:var(--border)!important;
+}
+
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
@@ -1779,72 +1820,54 @@ function exportKisiPDF(idx){
 }
 
 // ── TEMA ──
-const THEME_PRESETS=[
-  {name:'Varsayılan (Koyu Altın)',bg:'#0f1117',surface:'#181c27',surface2:'#1f2436',border:'#2a2f45',border2:'#363d58',gold:'#c9a84c',gold2:'#f0c96a',text:'#e8e2d4',textMid:'#9a9380'},
-  {name:'Lacivert & Gümüş',bg:'#0a0e1a',surface:'#111827',surface2:'#1e2a3a',border:'#243044',border2:'#2e3c50',gold:'#8ab4d4',gold2:'#b8d4ec',text:'#dce8f0',textMid:'#7a9ab0'},
-  {name:'Koyu Yeşil & Altın',bg:'#0a120e',surface:'#111c14',surface2:'#172419',border:'#1e3024',border2:'#28402e',gold:'#c9a84c',gold2:'#e8c86a',text:'#d8e8d0',textMid:'#7a9870'},
-  {name:'Bordo & Krem',bg:'#120a0a',surface:'#1c1010',surface2:'#241616',border:'#3a2020',border2:'#4a2a2a',gold:'#d4956a',gold2:'#e8b48a',text:'#f0ddd0',textMid:'#a07860'},
-  {name:'Siyah & Beyaz',bg:'#0a0a0a',surface:'#141414',surface2:'#1e1e1e',border:'#2a2a2a',border2:'#383838',gold:'#e0e0e0',gold2:'#ffffff',text:'#f0f0f0',textMid:'#909090'},
-  {name:'☀️ Aydınlık (Beyaz)',bg:'#f5f5f0',surface:'#ffffff',surface2:'#f0ede6',border:'#ddd8cc',border2:'#ccc6b8',gold:'#b8860b',gold2:'#c9a84c',text:'#1a1a1a',textMid:'#555544'},
-  {name:'☀️ Aydınlık Mavi',bg:'#f0f4ff',surface:'#ffffff',surface2:'#e8eeff',border:'#c8d4f0',border2:'#b0bfe8',gold:'#2563eb',gold2:'#3b82f6',text:'#1e2a3a',textMid:'#4a5a7a'},
-  {name:'☀️ Aydınlık Yeşil',bg:'#f0faf0',surface:'#ffffff',surface2:'#e4f5e4',border:'#c0dcc0',border2:'#a8cca8',gold:'#16a34a',gold2:'#22c55e',text:'#1a2e1a',textMid:'#4a6a4a'},
-];
+// ── TEMA ──
 function openThemeModal(){
-  const themeKey='lexis_theme_'+(wsId||'default')+'_'+(cu?.idx??0);
-  const saved=JSON.parse(localStorage.getItem(themeKey)||'null');
-  document.getElementById('theme-rows').innerHTML=THEME_PRESETS.map((p,i)=>`
-    <div onclick="applyThemePreset(${i})" style="cursor:pointer;border:2px solid ${saved&&saved.name===p.name?'#c9a84c':'#363d58'};border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;background:${p.surface};transition:all .2s;">
-      <div style="display:flex;gap:4px;">
-        <div style="width:20px;height:20px;border-radius:50%;background:${p.bg};border:2px solid ${p.gold}"></div>
-        <div style="width:20px;height:20px;border-radius:50%;background:${p.surface2}"></div>
-        <div style="width:20px;height:20px;border-radius:50%;background:${p.gold}"></div>
-      </div>
-      <span style="font-size:13px;font-weight:500;color:${p.text}">${p.name}</span>
-      ${saved&&saved.name===p.name?`<span style="margin-left:auto;font-size:11px;color:${p.gold}">✓ Aktif</span>`:''}
-    </div>`).join('');
+  const isLight=document.body.classList.contains('light-theme');
+  document.getElementById('theme-rows').innerHTML=
+    '<div onclick="setTheme('dark')" style="cursor:pointer;border:2px solid '+(isLight?'#363d58':'#c9a84c')+';border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;background:#181c27;">'+
+      '<div style="display:flex;gap:5px;">'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:#0f1117;border:2px solid #c9a84c"></div>'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:#1f2436"></div>'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:#c9a84c"></div>'+
+      '</div>'+
+      '<span style="font-size:14px;font-weight:500;color:#e8e2d4;">🌙 Koyu Tema</span>'+
+      (!isLight?'<span style="margin-left:auto;font-size:12px;color:#c9a84c;font-weight:600;">✓ Aktif</span>':'')+
+    '</div>'+
+    '<div onclick="setTheme('light')" style="cursor:pointer;border:2px solid '+(isLight?'#b8860b':'#ddd8cc')+';border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:#ffffff;">'+
+      '<div style="display:flex;gap:5px;">'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:#f5f5f0;border:2px solid #b8860b"></div>'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:#f0ede6"></div>'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:#b8860b"></div>'+
+      '</div>'+
+      '<span style="font-size:14px;font-weight:500;color:#1a1a1a;">☀️ Açık Tema</span>'+
+      (isLight?'<span style="margin-left:auto;font-size:12px;color:#b8860b;font-weight:600;">✓ Aktif</span>':'')+
+    '</div>';
   document.getElementById('theme-modal').classList.add('open');
 }
-function applyThemePreset(i){
-  const p=THEME_PRESETS[i];
-  applyTheme(p);
-  const themeKey='lexis_theme_'+(wsId||'default')+'_'+(cu?.idx??0);
-  localStorage.setItem(themeKey,JSON.stringify(p));
+
+function setTheme(mode){
+  const themeKey='lexis_theme_'+(wsId||'default')+'_'+(cu?cu.idx:0);
+  if(mode==='light'){
+    document.body.classList.add('light-theme');
+    localStorage.setItem(themeKey,'light');
+    toast('☀️ Açık tema uygulandı');
+  } else {
+    document.body.classList.remove('light-theme');
+    localStorage.setItem(themeKey,'dark');
+    toast('🌙 Koyu tema uygulandı');
+  }
   openThemeModal();
-  toast('🎨 '+p.name+' teması uygulandı');
-}
-function applyTheme(p){
-  if(!p)return;
-  const r=document.documentElement;
-  r.style.setProperty('--bg',p.bg);
-  r.style.setProperty('--surface',p.surface);
-  r.style.setProperty('--surface2',p.surface2);
-  r.style.setProperty('--border',p.border);
-  r.style.setProperty('--border2',p.border2);
-  r.style.setProperty('--gold',p.gold);
-  r.style.setProperty('--gold2',p.gold2);
-  r.style.setProperty('--gold-dim',p.gold+'44');
-  r.style.setProperty('--text',p.text);
-  r.style.setProperty('--text-mid',p.textMid);
-  let el=document.getElementById('_th');
-  if(!el){el=document.createElement('style');el.id='_th';document.head.appendChild(el);}
-  el.textContent=
-    'html,body,#app,#login-screen,#setup-wizard{background:'+p.bg+'!important;color:'+p.text+'!important;}'+
-    ':root{--bg:'+p.bg+';--surface:'+p.surface+';--surface2:'+p.surface2+';--border:'+p.border+';--border2:'+p.border2+';--gold:'+p.gold+';--gold2:'+p.gold2+';--gold-dim:'+p.gold+'44;--text:'+p.text+';--text-mid:'+p.textMid+';}'+
-    '.modal,.panel,.wcard,.stat-card,.ap-item,.setup-box,.wiz-box{background:'+p.surface+'!important;color:'+p.text+'!important;}'+
-    '.ph,.topbar,.tabs,.tab{background:'+p.surface2+'!important;}'+
-    '.tab.active{border-bottom:2px solid '+p.gold+'!important;color:'+p.gold+'!important;}'+
-    'th{background:'+p.surface2+'!important;color:'+p.text+'!important;}'+
-    'td{color:'+p.text+'!important;border-color:'+p.border+'!important;}'+
-    'input,textarea,select,.wiz-input{background:'+p.surface2+'!important;color:'+p.text+'!important;border-color:'+p.border+'!important;}'+
-    '.btn-ghost{color:'+p.text+'!important;border-color:'+p.border+'!important;}'+
-    '.modal-overlay{background:rgba(0,0,0,.75)!important;}';
 }
 
 function loadSavedTheme(){
-  const themeKey='lexis_theme_'+(wsId||'default')+'_'+(cu?.idx??0);
-  const saved=JSON.parse(localStorage.getItem(themeKey)||'null');
-  if(saved)applyTheme(saved);
+  const themeKey='lexis_theme_'+(wsId||'default')+'_'+(cu?cu.idx:0);
+  const saved=localStorage.getItem(themeKey);
+  if(saved==='light') document.body.classList.add('light-theme');
+  else document.body.classList.remove('light-theme');
 }
+
+function applyTheme(){}
+function applyThemePreset(){}
 // ── DİĞER İŞLER ──
 const DIGER_TYPES=['İhtarname Cevabı','İcra Takibi Başlatma','Dava Açma','Konu Araştırma','Sözleşme Hazırlama','Dilekçe Yazma','Müvekkil Görüşmesi','Belge Hazırlama','Arabuluculuk Başvurusu','Resmi Yazışma','Diğer'];
 
