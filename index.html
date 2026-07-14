@@ -2,10 +2,23 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lexis — Ekip Süre Takibi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TaskLegal — Ekip Süre Takibi</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#b8943c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TaskLegal">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});
+}
+</script>
 <script type="module">
 // ── FIREBASE ──
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -492,7 +505,7 @@ tr.done-row td{opacity:.35;}
 <!-- ═══ SETUP WIZARD ═══ -->
 <div id="setup-wizard">
   <div class="wiz-box">
-    <div class="wiz-logo">⚖ LEXIS</div>
+    <div class="wiz-logo">⚖ TASKLEGAL</div>
     <div class="wiz-sub">Ekip Süre Takip Sistemi</div>
 
     <!-- ADIM 1: Giriş veya Kayıt -->
@@ -596,7 +609,7 @@ tr.done-row td{opacity:.35;}
 
 <!-- ═══ LOGIN ═══ -->
 <div id="login-screen">
-  <div class="login-logo">⚖ LEXIS</div>
+  <div class="login-logo">⚖ TASKLEGAL</div>
   <div class="login-sub">Ekip Süre Takip Sistemi</div>
   <div class="login-ws">Çalışma Alanı: <span id="ws-name">—</span></div>
   <div class="login-hint">Hesabınızı Seçin</div>
@@ -639,7 +652,7 @@ tr.done-row td{opacity:.35;}
 <div id="app">
   <div class="topbar">
     <div style="display:flex;align-items:center;overflow:hidden;">
-      <div class="brand">⚖ LEXIS</div>
+      <div class="brand">⚖ TASKLEGAL</div>
       <div class="tsep hide-mobile"></div>
       <div class="cur-user hide-mobile">
         <div class="mav" id="tav"></div>
@@ -653,6 +666,7 @@ tr.done-row td{opacity:.35;}
       <button class="tb-btn sync" onclick="syncNow()" title="Verileri şimdi güncelle">↻</button>
       <button class="tb-btn hide-sm" onclick="exportJSON()">💾 Yedek</button>
       <button class="tb-btn hide-sm" onclick="importJSON()">📂 Geri Yükle</button>
+      <button class="tb-btn hide-sm" onclick="importExcel()">📥 Excel Yükle</button>
       <button class="tb-btn hide-sm" onclick="openThemeModal()">🎨 Tema</button>
       <button class="tb-btn hide-sm" id="pwd-btn" onclick="openPwdModal()" style="display:none">🔐 Şifreler</button>
       <button class="tb-btn hide-sm" id="user-mgmt-btn" onclick="openNamesModal()" style="display:none">👥 Kullanıcılar</button>
@@ -678,6 +692,7 @@ tr.done-row td{opacity:.35;}
       <button class="mm-item" onclick="openThemeModal();toggleMobileMenu()">🎨 Tema Değiştir</button>
       <button class="mm-item" onclick="exportJSON();toggleMobileMenu()">💾 Yedek Al</button>
       <button class="mm-item" onclick="importJSON();toggleMobileMenu()">📂 Geri Yükle</button>
+      <button class="mm-item" onclick="importExcel();toggleMobileMenu()">📥 Excel Yükle</button>
       <button class="mm-item" id="mm-pwd-btn" onclick="openPwdModal();toggleMobileMenu()" style="display:none">🔐 Şifreler</button>
       <button class="mm-item" id="mm-user-btn" onclick="openNamesModal();toggleMobileMenu()" style="display:none">👥 Kullanıcılar</button>
       <button class="mm-item" id="mm-settings-btn" onclick="openSettingsModal();toggleMobileMenu()" style="display:none">⚙️ Ayarlar</button>
@@ -700,9 +715,10 @@ tr.done-row td{opacity:.35;}
     <div id="nrows" style="margin-bottom:18px;"></div>
     <div style="border-top:1px solid var(--border);padding-top:16px;">
       <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-mid);margin-bottom:10px;">➕ Yeni Kullanıcı Ekle</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;">
+      <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;align-items:end;">
         <div class="fg"><label>İsim</label><input class="sinput" id="new-user-name" placeholder="Kullanıcı adı..."></div>
         <div class="fg"><label>Şifre</label><input class="sinput" id="new-user-pwd" type="password" placeholder="Şifre..."></div>
+        <div class="fg"><label>Rol</label><select class="sinput" id="new-user-role"><option value="user">Avukat</option><option value="admin">Yönetici</option></select></div>
         <button class="btn btn-gold" style="height:36px;" onclick="addUser()">Ekle</button>
       </div>
     </div>
@@ -826,6 +842,24 @@ tr.done-row td{opacity:.35;}
         <input type="range" id="setting-warnDays" min="1" max="14" value="3" step="1" style="flex:1;">
         <span id="warnDays-out" style="font-size:16px;font-weight:500;min-width:30px;text-align:center;color:var(--gold);">3</span>
         <span style="font-size:12px;color:var(--text-mid);">gün</span>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1px solid rgba(217,79,79,.25);">
+      <div style="font-size:14px;font-weight:500;margin-bottom:3px;color:var(--red);">🗑 Veri Yönetimi</div>
+      <div style="font-size:12px;color:var(--text-mid);margin-bottom:12px;">Kategori bazında toplu silme. Bu işlemler geri alınamaz!</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(217,79,79,.3);" onclick="delDoneTasks()">✓ Tamamlanmış Dava İşleri</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(217,79,79,.3);" onclick="delDoneDiger()">✓ Tamamlanmış Diğer İşler</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(217,79,79,.3);" onclick="delAllTasks()">⚠ Tüm Dava İşleri</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(217,79,79,.3);" onclick="delAllDiger()">⚠ Tüm Diğer İşler</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(217,79,79,.3);grid-column:1/-1;" onclick="clearActivityLogAction()">🕒 Aktivite Geçmişini Temizle</button>
+      </div>
+      <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;">👤 Kişi Bazlı Silme</div>
+        <div style="display:flex;gap:8px;">
+          <select class="sinput" id="setting-delUser" style="flex:1;"></select>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(217,79,79,.3);white-space:nowrap;" onclick="delUserAllWork()">🗑 Bu Kişinin Tüm İşlerini Sil</button>
+        </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -1116,22 +1150,30 @@ function renderUserMgmtRows(){
       <div class="sav" style="background:${COLORS[i%COLORS.length]}22;color:${COLORS[i%COLORS.length]}">${(u.name||'?')[0]}</div>
       <input class="sinput" id="nn${i}" value="${u.name}" style="flex:1.5;" placeholder="İsim...">
       <input class="sinput" id="npwd${i}" type="password" value="${u.password||''}" style="flex:1;" placeholder="Şifre...">
-      <span style="font-size:11px;color:var(--text-dim);width:60px;text-align:center;">${u.role==='admin'?'👑 Admin':'Avukat'}</span>
+      ${i===0
+        ?`<span style="font-size:11px;color:var(--text-dim);width:80px;text-align:center;">👑 Yönetici</span>`
+        :`<select class="sinput" id="nrole${i}" style="width:100px;"><option value="user" ${u.role!=='admin'?'selected':''}>Avukat</option><option value="admin" ${u.role==='admin'?'selected':''}>Yönetici</option></select>`}
       ${i>0?`<button class="btn btn-ghost btn-sm" onclick="deleteUser(${i})" style="color:var(--red);border-color:rgba(217,79,79,.3);flex-shrink:0;">🗑</button>`:'<div style="width:36px"></div>'}
     </div>`).join('');
 }
-function addUser(){
+async function addUser(){
   const name=(document.getElementById('new-user-name').value||'').trim();
   const pwd=(document.getElementById('new-user-pwd').value||'').trim();
+  const role=(document.getElementById('new-user-role')?.value||'user');
   if(!name){toast('⚠️ Kullanıcı adı boş olamaz');return;}
   if(!pwd){toast('⚠️ Şifre boş olamaz');return;}
-  users.push({name,role:'user',password:pwd});
+  users.push({name,role,password:pwd});
   renderUserMgmtRows();
   document.getElementById('new-user-name').value='';
   document.getElementById('new-user-pwd').value='';
-  toast('✅ Kullanıcı listeye eklendi — kaydetmeyi unutmayın');
+  document.getElementById('new-user-role').value='user';
+  showLoading('Kaydediliyor...');
+  await pushData();
+  hideLoading();
+  renderLogin();
+  toast('✅ Kullanıcı eklendi ve kaydedildi');
 }
-function deleteUser(i){
+async function deleteUser(i){
   if(i===0){toast('⚠️ Yönetici silinemez');return;}
   if(cu&&cu.idx===i){toast('⚠️ Kendinizi silemezsiniz');return;}
   if(!confirm(users[i].name+' kullanıcısını silmek istediğinizden emin misiniz?\nBu kullanıcıya atanmış işler yöneticiye devredilecektir!'))return;
@@ -1139,15 +1181,21 @@ function deleteUser(i){
   tasks.forEach(t=>{if(t.atanan===i)t.atanan=0;else if(t.atanan>i)t.atanan--;});
   digerIsler.forEach(d=>{if(d.atanan===i)d.atanan=0;else if(d.atanan>i)d.atanan--;});
   renderUserMgmtRows();
-  toast('🗑 Kullanıcı silindi — kaydetmeyi unutmayın');
+  showLoading('Kaydediliyor...');
+  await pushData();
+  hideLoading();
+  renderLogin();
+  toast('🗑 Kullanıcı silindi ve kaydedildi');
 }
 function closeNames(){document.getElementById('names-modal').classList.remove('open');}
 async function saveNames(){
   users.forEach((u,i)=>{
     const n=document.getElementById('nn'+i)?.value.trim();
     const p=document.getElementById('npwd'+i)?.value;
+    const r=document.getElementById('nrole'+i)?.value;
     if(n)u.name=n;
     if(p!==undefined&&p!==null&&p!=='')u.password=p;
+    if(i>0&&r)u.role=r;
   });
   showLoading('Kaydediliyor...');
   await pushData();
@@ -1598,7 +1646,7 @@ function exportMineExcel(){
   XLSX.utils.book_append_sheet(wb,ws1,'Dava İşleri');
   const ws2=XLSX.utils.aoa_to_sheet([['İş Adı','Tür','Geliş','Teslim','Öncelik','Onay','Notlar','Durum'],...myD.map(d=>[d.isim||'',d.tur||'',fmt(d.gelis_tarihi),fmt(d.teslim_tarihi),(pl[d.oncelik]||d.oncelik),d.onay||'',d.not||'',d.done?'Tamamlandı':'Aktif'])]);
   XLSX.utils.book_append_sheet(wb,ws2,'Diğer İşler');
-  XLSX.writeFile(wb,'lexis-benim-islerim-'+new Date().toISOString().split('T')[0]+'.xlsx');
+  XLSX.writeFile(wb,'tasklegal-benim-islerim-'+new Date().toISOString().split('T')[0]+'.xlsx');
   toast('📊 Excel indirildi');
 }
 function renderAll(){
@@ -1703,7 +1751,7 @@ function exportAllCombinedExcel(){
   ws2['!cols']=[{wch:32},{wch:20},{wch:13},{wch:13},{wch:14},{wch:10},{wch:20},{wch:25},{wch:12}];
   XLSX.utils.book_append_sheet(wb,ws2,'Diğer İşler');
   const label=allPersonFilter>=0?users[allPersonFilter].name.replace(/\s/g,'-'):'tum-ekip';
-  XLSX.writeFile(wb,'lexis-'+label+'-'+new Date().toISOString().split('T')[0]+'.xlsx');
+  XLSX.writeFile(wb,'tasklegal-'+label+'-'+new Date().toISOString().split('T')[0]+'.xlsx');
   toast('📊 Excel indirildi');
 }
 
@@ -1718,8 +1766,8 @@ function exportAllCombinedPDF(){
   const dr=ft.map(t=>`<tr><td><b>${t.mahkeme||'—'}</b></td><td>${t.dosya_no||'—'}</td><td style="font-size:10px">${t.tur||'—'}</td><td>${fmt(t.teslim_tarihi)}</td><td>${users[t.atanan]?.name||'—'}</td><td>${pl[t.oncelik]||t.oncelik}</td><td>${t.not||'—'}</td><td style="color:${t.done?'green':t.pending?'#2980b9':'#c0392b'}">${t.done?'✓ Tamam':t.pending?'⏳ Onay':'Aktif'}</td></tr>`).join('');
   const dgr=fd.map(d=>`<tr><td><b>${d.isim||'—'}</b></td><td>${d.tur||'—'}</td><td>${fmt(d.teslim_tarihi)}</td><td>${users[d.atanan]?.name||'—'}</td><td>${pl[d.oncelik]||d.oncelik}</td><td>${d.onay||'—'}</td><td>${d.not||'—'}</td><td style="color:${d.done?'green':'#c0392b'}">${d.done?'✓ Tamam':'Aktif'}</td></tr>`).join('');
   const win=window.open('','_blank');
-  win.document.write(`<html><head><title>Tüm İşler — Lexis</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:8px;}h3{color:#1a1a2e;margin:16px 0 6px;font-size:13px;}.info{background:#f5f0e8;border-left:4px solid #c9a84c;padding:8px 14px;margin-bottom:14px;border-radius:4px;}table{width:100%;border-collapse:collapse;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:left;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;}tr:nth-child(even)td{background:#f9f9f9;}@media print{body{padding:0}}</style></head><body>
-  <h2>⚖ LEXIS — Tüm İşler: ${label}</h2>
+  win.document.write(`<html><head><title>Tüm İşler — TaskLegal</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:8px;}h3{color:#1a1a2e;margin:16px 0 6px;font-size:13px;}.info{background:#f5f0e8;border-left:4px solid #c9a84c;padding:8px 14px;margin-bottom:14px;border-radius:4px;}table{width:100%;border-collapse:collapse;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:left;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;}tr:nth-child(even)td{background:#f9f9f9;}@media print{body{padding:0}}</style></head><body>
+  <h2>⚖ TASKLEGAL — Tüm İşler: ${label}</h2>
   <div class="info"><p style="margin:0">Tarih: ${new Date().toLocaleDateString('tr-TR')} | Dava: ${ft.length} | Diğer: ${fd.length}</p></div>
   <h3>📋 Dava İşleri (${ft.length})</h3>
   <table><thead><tr><th>Mahkeme/Kurum</th><th>Dosya No</th><th>İşlem Türü</th><th>Teslim</th><th>Atanan</th><th>Öncelik</th><th>Notlar</th><th>Durum</th></tr></thead>
@@ -1837,7 +1885,7 @@ function exportTeamExcel(idx){
   const ws2=XLSX.utils.aoa_to_sheet([['İş Adı','Tür','Geliş','Teslim','Atanan','Öncelik','Onay','Notlar','Durum'],...fd.filter(d=>canSee(d)).map(d=>[d.isim||'',d.tur||'',fmt(d.gelis_tarihi),fmt(d.teslim_tarihi),users[d.atanan]?.name||'',(pl[d.oncelik]||d.oncelik),d.onay||'',d.not||'',d.done?'Tamamlandı':'Aktif'])]);
   ws2['!cols']=[{wch:32},{wch:20},{wch:13},{wch:13},{wch:14},{wch:10},{wch:20},{wch:25},{wch:12}];
   XLSX.utils.book_append_sheet(wb,ws2,'Diğer İşler');
-  XLSX.writeFile(wb,'lexis-'+(u?u.name.replace(/\s/g,'-'):'tumu')+'-'+new Date().toISOString().split('T')[0]+'.xlsx');
+  XLSX.writeFile(wb,'tasklegal-'+(u?u.name.replace(/\s/g,'-'):'tumu')+'-'+new Date().toISOString().split('T')[0]+'.xlsx');
   toast('📊 '+label+' Excel indirildi');
 }
 
@@ -1852,7 +1900,7 @@ function exportTeamPDF(idx){
   const dr=vt.map(t=>`<tr><td><b>${t.mahkeme||'—'}</b></td><td>${t.dosya_no||'—'}</td><td style="font-size:10px">${t.tur||'—'}</td><td>${fmt(t.tebligat_tarihi)}</td><td>${fmt(t.teslim_tarihi)}</td><td>${users[t.atanan]?.name||'—'}</td><td>${pl[t.oncelik]||t.oncelik}</td><td style="color:${t.done?'green':t.pending?'#2980b9':'#c0392b'}">${t.done?'✓ Tamam':t.pending?'⏳ Onay':'Aktif'}</td></tr>`).join('');
   const dgr=vd.map(d=>`<tr><td><b>${d.isim||'—'}</b></td><td>${d.tur||'—'}</td><td>${fmt(d.gelis_tarihi)}</td><td>${fmt(d.teslim_tarihi)}</td><td>${users[d.atanan]?.name||'—'}</td><td>${pl[d.oncelik]||d.oncelik}</td><td>${d.onay||'—'}</td><td style="color:${d.done?'green':'#c0392b'}">${d.done?'✓ Tamam':'Aktif'}</td></tr>`).join('');
   const win=window.open('','_blank');
-  win.document.write(`<html><head><title>${label} — Lexis</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:8px;}h3{color:#1a1a2e;margin:18px 0 6px;font-size:13px;}.info{background:#f5f0e8;border-left:4px solid #c9a84c;padding:8px 14px;margin-bottom:14px;border-radius:4px;}table{width:100%;border-collapse:collapse;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:left;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;}tr:nth-child(even)td{background:#f9f9f9;}@media print{body{padding:0}}</style></head><body><h2>⚖ LEXIS — ${label}</h2><div class="info"><p style="margin:0">Tarih: ${new Date().toLocaleDateString('tr-TR')} | Dava: ${vt.length} | Diğer: ${vd.length}</p></div><h3>📋 Dava İşleri (${vt.length})</h3><table><thead><tr><th>Mahkeme/Kurum</th><th>Dosya No</th><th>İşlem Türü</th><th>Tebligat</th><th>Teslim</th><th>Atanan</th><th>Öncelik</th><th>Durum</th></tr></thead><tbody>${dr||'<tr><td colspan=8 style=text-align:center;color:#999;padding:12px>Kayıt yok</td></tr>'}</tbody></table><h3>📝 Diğer İşler (${vd.length})</h3><table><thead><tr><th>İş Adı</th><th>Tür</th><th>Geliş</th><th>Teslim</th><th>Atanan</th><th>Öncelik</th><th>Onay</th><th>Durum</th></tr></thead><tbody>${dgr||'<tr><td colspan=8 style=text-align:center;color:#999;padding:12px>Kayıt yok</td></tr>'}</tbody></table></body></html>`);
+  win.document.write(`<html><head><title>${label} — TaskLegal</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:8px;}h3{color:#1a1a2e;margin:18px 0 6px;font-size:13px;}.info{background:#f5f0e8;border-left:4px solid #c9a84c;padding:8px 14px;margin-bottom:14px;border-radius:4px;}table{width:100%;border-collapse:collapse;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:left;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;}tr:nth-child(even)td{background:#f9f9f9;}@media print{body{padding:0}}</style></head><body><h2>⚖ LEXIS — ${label}</h2><div class="info"><p style="margin:0">Tarih: ${new Date().toLocaleDateString('tr-TR')} | Dava: ${vt.length} | Diğer: ${vd.length}</p></div><h3>📋 Dava İşleri (${vt.length})</h3><table><thead><tr><th>Mahkeme/Kurum</th><th>Dosya No</th><th>İşlem Türü</th><th>Tebligat</th><th>Teslim</th><th>Atanan</th><th>Öncelik</th><th>Durum</th></tr></thead><tbody>${dr||'<tr><td colspan=8 style=text-align:center;color:#999;padding:12px>Kayıt yok</td></tr>'}</tbody></table><h3>📝 Diğer İşler (${vd.length})</h3><table><thead><tr><th>İş Adı</th><th>Tür</th><th>Geliş</th><th>Teslim</th><th>Atanan</th><th>Öncelik</th><th>Onay</th><th>Durum</th></tr></thead><tbody>${dgr||'<tr><td colspan=8 style=text-align:center;color:#999;padding:12px>Kayıt yok</td></tr>'}</tbody></table></body></html>`);
   win.document.close();setTimeout(()=>win.print(),500);
   toast('📄 '+label+' PDF hazırlanıyor');
 }
@@ -2041,6 +2089,8 @@ function openSettingsModal(){
   if(cb2){cb2.checked=settings.digerOnay!==false;updateToggle('digerOnay',cb2.checked);}
   const wd=document.getElementById('setting-warnDays');
   if(wd){wd.value=settings.warnDays||3;document.getElementById('warnDays-out').textContent=wd.value;}
+  const du=document.getElementById('setting-delUser');
+  if(du)du.innerHTML=users.map((u,i)=>`<option value="${i}">${u.name}</option>`).join('');
   document.getElementById('settings-modal').classList.add('open');
 }
 function updateToggle(key,val){
@@ -2085,7 +2135,7 @@ function exportCSV(){
   const h=['Mahkeme','Dosya No','İşlem Türü','Tebligat','Teslim','Atanan','Öncelik','Notlar','Durum'];
   const r=tasks.map(t=>[t.mahkeme,t.dosya_no,t.tur,fmt(t.tebligat_tarihi),fmt(t.teslim_tarihi),users[t.atanan]?.name||'',t.oncelik,t.not,t.done?'Tamam':t.pending?'Onay Bek.':'Aktif']);
   const csv=[h,...r].map(x=>x.map(c=>`"${c||''}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='lexis.csv';a.click();
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='tasklegal.csv';a.click();
 }
 
 function exportKisiCSV(idx){
@@ -2093,12 +2143,12 @@ function exportKisiCSV(idx){
   const ut=tasks.filter(t=>t.atanan===idx);
   const ud=digerIsler.filter(d=>d.atanan===idx);
   const prioLbl={acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'};
-  let csv='\uFEFF"LEXIS — '+u.name+' İş Listesi"\n"Tarih","'+new Date().toLocaleDateString('tr-TR')+'"\n\n';
+  let csv='\uFEFF"TASKLEGAL — '+u.name+' İş Listesi"\n"Tarih","'+new Date().toLocaleDateString('tr-TR')+'"\n\n';
   csv+='"=== DAVA İŞLERİ ==="\n"Mahkeme/Kurum","Dosya No","İşlem Türü","Tebligat","Teslim","Öncelik","Notlar","Durum"\n';
   ut.forEach(t=>{csv+=`"${t.mahkeme||''}","${t.dosya_no||''}","${t.tur||''}","${fmt(t.tebligat_tarihi)}","${fmt(t.teslim_tarihi)}","${prioLbl[t.oncelik]||t.oncelik}","${t.not||''}","${t.done?'Tamamlandı':t.pending?'Onay Bekliyor':'Aktif'}"\n`;});
   csv+='\n"=== DİĞER İŞLER ==="\n"İş Adı","Tür","Geliş","Teslim","Öncelik","Onay Bilgisi","Notlar","Durum"\n';
   ud.forEach(d=>{csv+=`"${d.isim||''}","${d.tur||''}","${fmt(d.gelis_tarihi)}","${fmt(d.teslim_tarihi)}","${prioLbl[d.oncelik]||d.oncelik}","${d.onay||''}","${d.not||''}","${d.done?'Tamamlandı':'Aktif'}"\n`;});
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='lexis-'+u.name.replace(/\s/g,'-')+'.csv';a.click();
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='tasklegal-'+u.name.replace(/\s/g,'-')+'.csv';a.click();
   toast('⬇ '+u.name+' için CSV indirildi');
 }
 
@@ -2112,7 +2162,7 @@ function exportKisiExcel(idx){
   const ws2=XLSX.utils.aoa_to_sheet([['İş Adı','İş Türü','Geliş','Teslim','Öncelik','Onay Bilgisi','Notlar','Durum'],...ud.map(d=>[d.isim||'',d.tur||'',fmt(d.gelis_tarihi),fmt(d.teslim_tarihi),prioLbl[d.oncelik]||d.oncelik,d.onay||'',d.not||'',d.done?'Tamamlandı':'Aktif'])]);
   ws2['!cols']=[{wch:35},{wch:22},{wch:14},{wch:14},{wch:10},{wch:22},{wch:25},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws2,'Diğer İşler');
-  XLSX.writeFile(wb,'lexis-'+u.name.replace(/\s/g,'-')+'.xlsx');
+  XLSX.writeFile(wb,'tasklegal-'+u.name.replace(/\s/g,'-')+'.xlsx');
   toast('📊 '+u.name+' için Excel indirildi');
 }
 
@@ -2122,8 +2172,8 @@ function exportKisiPDF(idx){
   const win=window.open('','_blank');
   const davaRows=ut.map(t=>'<tr><td><b>'+(t.mahkeme||'—')+'</b></td><td>'+(t.dosya_no||'—')+'</td><td style="font-size:10px">'+(t.tur||'—')+'</td><td>'+fmt(t.tebligat_tarihi)+'</td><td>'+fmt(t.teslim_tarihi)+'</td><td>'+(prioLbl[t.oncelik]||t.oncelik)+'</td><td>'+(t.not||'—')+'</td><td style="color:'+(t.done?'green':t.pending?'#2980b9':'#c0392b')+'">'+(t.done?'✓ Tamamlandı':t.pending?'⏳ Onay':'Aktif')+'</td></tr>').join('');
   const digerRows=ud.map(d=>'<tr><td><b>'+(d.isim||'—')+'</b></td><td>'+(d.tur||'—')+'</td><td>'+fmt(d.gelis_tarihi)+'</td><td>'+fmt(d.teslim_tarihi)+'</td><td>'+(prioLbl[d.oncelik]||d.oncelik)+'</td><td>'+(d.onay||'—')+'</td><td>'+(d.not||'—')+'</td><td style="color:'+(d.done?'green':'#c0392b')+'">'+(d.done?'✓ Tamamlandı':'Aktif')+'</td></tr>').join('');
-  win.document.write(`<html><head><title>${u.name} — Lexis</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:8px;}h3{color:#1a1a2e;margin:18px 0 6px;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:8px;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:left;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;vertical-align:top;}tr:nth-child(even)td{background:#f9f9f9;}.info{background:#f5f0e8;border-left:4px solid #c9a84c;padding:8px 14px;margin-bottom:14px;border-radius:4px;}@media print{body{padding:0}}</style></head><body>
-    <h2>⚖ LEXIS — ${u.name} İş Listesi</h2>
+  win.document.write(`<html><head><title>${u.name} — TaskLegal</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:8px;}h3{color:#1a1a2e;margin:18px 0 6px;font-size:13px;}table{width:100%;border-collapse:collapse;margin-bottom:8px;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:left;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;vertical-align:top;}tr:nth-child(even)td{background:#f9f9f9;}.info{background:#f5f0e8;border-left:4px solid #c9a84c;padding:8px 14px;margin-bottom:14px;border-radius:4px;}@media print{body{padding:0}}</style></head><body>
+    <h2>⚖ TASKLEGAL — ${u.name} İş Listesi</h2>
     <div class="info"><p style="margin:0">Tarih: ${new Date().toLocaleDateString('tr-TR')} | Dava: ${ut.length} | Diğer: ${ud.length}</p></div>
     <h3>📋 Dava İşleri (${ut.length})</h3>
     <table><thead><tr><th>Mahkeme/Kurum</th><th>Dosya No</th><th>İşlem Türü</th><th>Tebligat</th><th>Teslim</th><th>Öncelik</th><th>Notlar</th><th>Durum</th></tr></thead><tbody>${davaRows||'<tr><td colspan="8" style="text-align:center;color:#999;padding:12px">Kayıt yok</td></tr>'}</tbody></table>
@@ -2344,7 +2394,7 @@ function exportDigerExcel(){
   const ws2=XLSX.utils.aoa_to_sheet([headers2,...rows2]);
   ws2['!cols']=[{wch:25},{wch:14},{wch:25},{wch:14},{wch:14},{wch:16},{wch:10},{wch:25},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws2,'Dava İşleri');
-  XLSX.writeFile(wb,'lexis-isler-'+new Date().toISOString().split('T')[0]+'.xlsx');
+  XLSX.writeFile(wb,'tasklegal-isler-'+new Date().toISOString().split('T')[0]+'.xlsx');
   toast('📊 Excel indirildi');
 }
 
@@ -2356,7 +2406,7 @@ function exportDigerPDF(){
     '<td>'+(d.onay||'—')+'</td><td>'+(d.not||'—')+'</td>'+
     '<td style="color:'+(d.done?'green':'#c0392b')+'">'+(d.done?'✓ Tamamlandı':'Aktif')+'</td>'+
   '</tr>').join('');
-  win.document.write('<html><head><title>Diğer İşler — Lexis</title><style>'+
+  win.document.write('<html><head><title>Diğer İşler — TaskLegal</title><style>'+
     'body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}'+
     'h2{color:#1a1a2e;border-bottom:2px solid #c9a84c;padding-bottom:8px;}'+
     'table{width:100%;border-collapse:collapse;margin-top:12px;}'+
@@ -2365,7 +2415,7 @@ function exportDigerPDF(){
     'tr:nth-child(even)td{background:#f9f9f9;}'+
     '@media print{body{padding:0}}'+
   '</style></head><body>'+
-    '<h2>⚖ Lexis — Yapılacak Diğer İşler</h2>'+
+    '<h2>⚖ TaskLegal — Yapılacak Diğer İşler</h2>'+
     '<p style="color:#666;font-size:11px">Tarih: '+new Date().toLocaleDateString('tr-TR')+' | Toplam: '+digerIsler.length+' kayıt</p>'+
     '<table><thead><tr><th>İş Adı</th><th>Tür</th><th>Geliş</th><th>Teslim</th><th>Kim</th><th>Öncelik</th><th>Onay</th><th>Not</th><th>Durum</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table>'+
@@ -2420,7 +2470,7 @@ function exportDavaPDF(){
     '<td style="font-size:10px">'+(t.not||'—')+'</td>'+
     '<td style="color:'+(t.done?'green':t.pending?'#2980b9':'#c0392b')+'">'+(t.done?'✓ Tamamlandı':t.pending?'⏳ Onay Bek.':'Aktif')+'</td>'+
   '</tr>').join('');
-  win.document.write(`<html><head><title>Dava İşleri — Lexis</title><style>
+  win.document.write(`<html><head><title>Dava İşleri — TaskLegal</title><style>
     body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}
     h2{color:#1a1a2e;border-bottom:2px solid #c9a84c;padding-bottom:8px;margin-bottom:4px;}
     p{color:#666;font-size:11px;margin-bottom:12px;}
@@ -2430,7 +2480,7 @@ function exportDavaPDF(){
     tr:nth-child(even)td{background:#f9f9f9;}
     @media print{body{padding:0}}
   </style></head><body>
-    <h2>⚖ Lexis — Dava İşleri</h2>
+    <h2>⚖ TaskLegal — Dava İşleri</h2>
     <p>Tarih: ${new Date().toLocaleDateString('tr-TR')} | Toplam: ${tasks.length} kayıt</p>
     <table><thead><tr>
       <th>Mahkeme/Kurum</th><th>Dosya No</th><th>İşlem Türü</th>
@@ -2677,7 +2727,7 @@ function exportDetailReportPDF(){
     const rate=tot?Math.round(don/tot*100):0;
     return`<tr><td><b>${u.name}</b></td><td>${ut.length}</td><td>${ut.filter(t=>t.done).length}</td><td>${ut.filter(t=>!t.done&&!t.pending).length}</td><td style="color:#c0392b">${ut.filter(t=>!t.done&&diff(t.teslim_tarihi)<0).length}</td><td>${ud.length}</td><td>${ud.filter(d=>d.done).length}</td><td>${ud.filter(d=>!d.done).length}</td><td style="font-weight:bold;color:${rate>=75?'green':rate>=50?'orange':'red'}">${rate}%</td></tr>`;
   }).join('');
-  win.document.write(`<html><head><title>Detaylı Rapor — Lexis</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:2px solid #c9a84c;padding-bottom:8px;}table{width:100%;border-collapse:collapse;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:center;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;text-align:center;}td:first-child{text-align:left;}tr:nth-child(even)td{background:#f9f9f9;}@media print{body{padding:0}}</style></head><body><h2>⚖ LEXIS — Detaylı Personel Raporu</h2><p style="color:#666;font-size:11px;margin-bottom:12px">Tarih: ${new Date().toLocaleDateString('tr-TR')}</p><table><thead><tr><th>Kişi</th><th>Dava T.</th><th>Dava ✓</th><th>Dava Aktif</th><th>Dava Geçmiş</th><th>Diğer T.</th><th>Diğer ✓</th><th>Diğer Aktif</th><th>Oran</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  win.document.write(`<html><head><title>Detaylı Rapor — TaskLegal</title><style>body{font-family:Arial,sans-serif;font-size:11px;padding:20px;}h2{color:#1a1a2e;border-bottom:2px solid #c9a84c;padding-bottom:8px;}table{width:100%;border-collapse:collapse;}th{background:#1a1a2e;color:white;padding:7px 5px;text-align:center;font-size:10px;}td{padding:6px 5px;border-bottom:1px solid #eee;text-align:center;}td:first-child{text-align:left;}tr:nth-child(even)td{background:#f9f9f9;}@media print{body{padding:0}}</style></head><body><h2>⚖ TASKLEGAL — Detaylı Personel Raporu</h2><p style="color:#666;font-size:11px;margin-bottom:12px">Tarih: ${new Date().toLocaleDateString('tr-TR')}</p><table><thead><tr><th>Kişi</th><th>Dava T.</th><th>Dava ✓</th><th>Dava Aktif</th><th>Dava Geçmiş</th><th>Diğer T.</th><th>Diğer ✓</th><th>Diğer Aktif</th><th>Oran</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
   win.document.close();setTimeout(()=>win.print(),500);
 }
 
@@ -2748,11 +2798,134 @@ async function saveEditDiger(){
   showLoading('Kaydediliyor...');await pushData();hideLoading();closeEditDiger();renderContent();toast('💾 Güncellendi');
 }
 
+function importExcel(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      try{
+        const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        if(!rows.length){toast('⚠️ Excel dosyası boş görünüyor');return;}
+        const norm=s=>(s||'').toString().trim().toLowerCase()
+          .replace(/İ/g,'i').replace(/I/g,'i').replace(/ı/g,'i')
+          .replace(/ş/g,'s').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c');
+        const plMap={'acil':'acil','yuksek':'yuksek','orta':'orta','dusuk':'dusuk'};
+        const findCol=(row,names)=>{
+          for(const k of Object.keys(row)){
+            const nk=norm(k);
+            if(names.some(n=>nk.includes(n)))return row[k];
+          }
+          return '';
+        };
+        const parseDate=v=>{
+          if(!v)return '';
+          if(v instanceof Date){
+            const y=v.getFullYear(),m=String(v.getMonth()+1).padStart(2,'0'),d=String(v.getDate()).padStart(2,'0');
+            return `${y}-${m}-${d}`;
+          }
+          const s=v.toString().trim();
+          let m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+          if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+          m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+          if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+          return '';
+        };
+        let added=0,skipped=0;
+        rows.forEach((row,i)=>{
+          const mahkeme=(findCol(row,['mahkeme','kurum'])||'').toString().trim();
+          const dosyaNo=(findCol(row,['dosya'])||'').toString().trim();
+          const tur=(findCol(row,['islem','tur'])||'').toString().trim();
+          const teb=parseDate(findCol(row,['tebligat']));
+          const tes=parseDate(findCol(row,['teslim']));
+          const oncelikRaw=norm(findCol(row,['oncelik']));
+          const oncelik=plMap[oncelikRaw]||'orta';
+          const notField=(findCol(row,['not','aciklama'])||'').toString().trim();
+          const atananName=(findCol(row,['atanan','kim'])||'').toString().trim();
+          if(!mahkeme&&!dosyaNo&&!tur){skipped++;return;}
+          if(!tes){skipped++;return;}
+          let at=cu?cu.idx:0;
+          if(atananName){
+            const idx=users.findIndex(u=>norm(u.name)===norm(atananName));
+            if(idx>=0)at=idx;
+          }
+          tasks.push({id:Date.now()+i,mahkeme,dosya_no:dosyaNo,tur,tebligat_tarihi:teb,teslim_tarihi:tes,oncelik,not:notField,atanan:at,done:false,pending:false,history:[{action:'Excel ile içe aktarıldı',user:cu?cu.name:'Sistem',date:new Date().toISOString()}]});
+          added++;
+        });
+        if(added===0){toast('⚠️ Uygun satır bulunamadı. Sütun başlıklarını kontrol edin: Mahkeme/Kurum, Dosya No, İşlem Türü, Teslim (Teslim Tarihi zorunlu)');return;}
+        showLoading('Kaydediliyor...');await pushData();hideLoading();
+        renderContent();renderTabs();
+        toast('✅ '+added+' iş Excel\'den eklendi'+(skipped?' — '+skipped+' satır atlandı':''));
+      }catch(err){toast('⚠️ Excel okunamadı: '+err.message);}
+    };
+    reader.readAsArrayBuffer(f);
+  };inp.click();
+}
+async function delUserAllWork(){
+  if(!isAdmin()){toast('⚠️ Yetkiniz yok');return;}
+  const sel=document.getElementById('setting-delUser');
+  const idx=parseInt(sel?.value);
+  if(isNaN(idx)||!users[idx]){toast('⚠️ Kullanıcı seçin');return;}
+  const u=users[idx];
+  const nT=tasks.filter(t=>t.atanan===idx).length;
+  const nD=digerIsler.filter(d=>d.atanan===idx).length;
+  if(nT+nD===0){toast(u.name+' için silinecek iş yok');return;}
+  if(!confirm(u.name+' adlı kullanıcının TÜM işlerini silmek istediğinize emin misiniz?\n('+nT+' dava işi, '+nD+' diğer iş)\nBu işlem GERİ ALINAMAZ!'))return;
+  tasks=tasks.filter(t=>t.atanan!==idx);
+  digerIsler=digerIsler.filter(d=>d.atanan!==idx);
+  await bulkDeleteFinish(u.name+' kullanıcısının '+(nT+nD)+' işi silindi');
+}
+async function bulkDeleteFinish(msg){
+  showLoading('Kaydediliyor...');await pushData();hideLoading();
+  document.getElementById('settings-modal').classList.remove('open');
+  if(cu)renderContent();
+  toast('🗑 '+msg);
+}
+async function delAllTasks(){
+  if(!isAdmin()){toast('⚠️ Yetkiniz yok');return;}
+  if(tasks.length===0){toast('Silinecek dava işi yok');return;}
+  if(!confirm('TÜM dava işlerini silmek istediğinize emin misiniz? ('+tasks.length+' iş)\nBu işlem GERİ ALINAMAZ!'))return;
+  const n=tasks.length;tasks=[];
+  await bulkDeleteFinish(n+' dava işi silindi');
+}
+async function delAllDiger(){
+  if(!isAdmin()){toast('⚠️ Yetkiniz yok');return;}
+  if(digerIsler.length===0){toast('Silinecek diğer iş yok');return;}
+  if(!confirm('TÜM diğer işleri silmek istediğinize emin misiniz? ('+digerIsler.length+' iş)\nBu işlem GERİ ALINAMAZ!'))return;
+  const n=digerIsler.length;digerIsler=[];
+  await bulkDeleteFinish(n+' diğer iş silindi');
+}
+async function delDoneTasks(){
+  if(!isAdmin()){toast('⚠️ Yetkiniz yok');return;}
+  const n=tasks.filter(t=>t.done).length;
+  if(n===0){toast('Tamamlanmış dava işi yok');return;}
+  if(!confirm('Tamamlanmış '+n+' dava işini silmek istediğinize emin misiniz?\nBu işlem GERİ ALINAMAZ!'))return;
+  tasks=tasks.filter(t=>!t.done);
+  await bulkDeleteFinish(n+' tamamlanmış dava işi silindi');
+}
+async function delDoneDiger(){
+  if(!isAdmin()){toast('⚠️ Yetkiniz yok');return;}
+  const n=digerIsler.filter(d=>d.done).length;
+  if(n===0){toast('Tamamlanmış diğer iş yok');return;}
+  if(!confirm('Tamamlanmış '+n+' diğer işi silmek istediğinize emin misiniz?\nBu işlem GERİ ALINAMAZ!'))return;
+  digerIsler=digerIsler.filter(d=>!d.done);
+  await bulkDeleteFinish(n+' tamamlanmış diğer iş silindi');
+}
+function clearActivityLogAction(){
+  if(!isAdmin()){toast('⚠️ Yetkiniz yok');return;}
+  if(activityLog.length===0){toast('Aktivite geçmişi zaten boş');return;}
+  if(!confirm('Aktivite geçmişini temizlemek istediğinize emin misiniz?'))return;
+  activityLog=[];
+  toast('🗑 Aktivite geçmişi temizlendi');
+}
+
 function exportJSON(){
   const data=JSON.stringify({tasks,users,digerIsler,settings,wsId,exportedAt:new Date().toISOString()},null,2);
   const a=document.createElement('a');
   a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
-  a.download='lexis-yedek-'+new Date().toISOString().split('T')[0]+'.json';
+  a.download='tasklegal-yedek-'+new Date().toISOString().split('T')[0]+'.json';
   a.click();
   toast('💾 Yedek indirildi — '+tasks.length+' dava, '+digerIsler.length+' diğer iş');
 }
@@ -2911,7 +3084,7 @@ function checkAndNotify(){
     ...digerIsler.filter(d=>canSee(d)&&!d.done&&!d.pending&&(isAdmin()||d.atanan===cu.idx)).filter(d=>{const dv=diff(d.teslim_tarihi);return dv>=0&&dv<=warn;})
   ];
   if(urgent.length>0){
-    new Notification('⚖ Lexis — Yaklaşan Teslimler',{
+    new Notification('⚖ TaskLegal — Yaklaşan Teslimler',{
       body:`${urgent.length} işin teslim tarihi ${warn} gün içinde!`,
       icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⚖</text></svg>'
     });
