@@ -225,6 +225,22 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 .tb-btn:hover{border-color:var(--border2);color:var(--text);}
 .tb-btn.sync{color:var(--green);border-color:rgba(76,175,125,.3);}
 .clock{font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+/* ── SYSTEM DROPDOWN ── */
+.tb-dropdown{position:relative;}
+.tb-dropdown-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border2);border-radius:10px;box-shadow:var(--shadow);min-width:190px;padding:6px;z-index:200;opacity:0;pointer-events:none;transform:translateY(-6px);transition:all .15s;}
+.tb-dropdown-menu.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.tb-dd-item{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;padding:9px 10px;border-radius:7px;cursor:pointer;text-align:left;transition:background .12s;}
+.tb-dd-item:hover{background:var(--surface2);}
+.tb-dd-sep{height:1px;background:var(--border);margin:5px 2px;}
+/* ── CHECKLIST ── */
+.echk-row{display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 10px;}
+.echk-row.done{opacity:.5;}
+.echk-row.done .echk-text{text-decoration:line-through;}
+.echk-check{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border2);background:var(--surface);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--green);}
+.echk-check.on{background:var(--green-dim);border-color:var(--green);}
+.echk-text{flex:1;font-size:13px;}
+.echk-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;padding:2px 4px;flex-shrink:0;}
+.echk-del:hover{color:var(--red);}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:blink 2s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 
@@ -238,15 +254,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 .content{padding:22px 20px;max-width:1400px;margin:0 auto;width:100%;}
 
 /* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .18s;box-shadow:0 2px 10px rgba(0,0,0,.18);}
 .stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.28);}
 body.light-theme .stat-card{box-shadow:0 1px 6px rgba(0,0,0,.06);}
 body.light-theme .stat-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.10);}
 .stat-card:hover{border-color:var(--border2);}
 .stat-icon{font-size:20px;}
-.snum{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;line-height:1;}
-.slbl{font-size:10px;color:var(--text-mid);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+.snum{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1;}
+.slbl{font-size:9.5px;color:var(--text-dim);margin-top:3px;text-transform:uppercase;letter-spacing:.8px;font-weight:500;}
 
 /* PANEL */
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.16);}
@@ -675,13 +691,19 @@ body.light-theme .wcard{box-shadow:0 1px 6px rgba(0,0,0,.05);}
       <div class="clock hide-mobile" id="clock"></div>
       <span id="sync-indicator" class="hide-mobile" style="font-size:11px;color:var(--text-dim);" title="Son senkronizasyon"></span>
       <button class="tb-btn sync" onclick="syncNow()" title="Verileri şimdi güncelle">↻</button>
-      <button class="tb-btn hide-sm" onclick="exportJSON()">💾 Yedek</button>
-      <button class="tb-btn hide-sm" onclick="importJSON()">📂 Geri Yükle</button>
-      <button class="tb-btn hide-sm" onclick="importExcel()">📥 Excel Yükle</button>
-      <button class="tb-btn hide-sm" onclick="openThemeModal()">🎨 Tema</button>
-      <button class="tb-btn hide-sm" id="pwd-btn" onclick="openPwdModal()" style="display:none">🔐 Şifreler</button>
-      <button class="tb-btn hide-sm" id="user-mgmt-btn" onclick="openNamesModal()" style="display:none">👥 Kullanıcılar</button>
-      <button class="tb-btn hide-sm" id="settings-btn" onclick="openSettingsModal()" style="display:none">⚙️ Ayarlar</button>
+      <div class="tb-dropdown hide-sm" id="tb-dropdown">
+        <button class="tb-btn" onclick="toggleSystemMenu(event)">⚙ Sistem ▾</button>
+        <div class="tb-dropdown-menu" id="tb-dropdown-menu">
+          <button class="tb-dd-item" onclick="exportJSON();closeSystemMenu()">💾 Yedek</button>
+          <button class="tb-dd-item" onclick="importJSON();closeSystemMenu()">📂 Geri Yükle</button>
+          <button class="tb-dd-item" onclick="importExcel();closeSystemMenu()">📥 Excel Yükle</button>
+          <div class="tb-dd-sep"></div>
+          <button class="tb-dd-item" onclick="openThemeModal();closeSystemMenu()">🎨 Tema</button>
+          <button class="tb-dd-item" id="pwd-btn" onclick="openPwdModal();closeSystemMenu()" style="display:none">🔐 Şifreler</button>
+          <button class="tb-dd-item" id="user-mgmt-btn" onclick="openNamesModal();closeSystemMenu()" style="display:none">👥 Kullanıcılar</button>
+          <button class="tb-dd-item" id="settings-btn" onclick="openSettingsModal();closeSystemMenu()" style="display:none">⚙️ Ayarlar</button>
+        </div>
+      </div>
       <button class="tb-btn hide-sm" onclick="logout()">↩ Çıkış</button>
       <button class="tb-btn mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
     </div>
@@ -767,6 +789,14 @@ body.light-theme .wcard{box-shadow:0 1px 6px rgba(0,0,0,.05);}
       <div class="fg efull"><label>Notlar</label><input id="en" type="text"></div>
       <div class="fg efull"><label>📎 Belge / Link</label><input id="elink" type="text" placeholder="https://... veya UYAP referansı"></div>
       <div class="fg efull"><label>🔒 Görünürlük</label><div id="evis" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0;"></div><div style="font-size:11px;color:var(--text-mid);">Seçili değilse herkes görür. Gizlemek için kimlerin göreceğini seçin.</div></div>
+      <div class="fg efull">
+        <label>✅ Alt Görevler (Checklist)</label>
+        <div id="echk-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+        <div style="display:flex;gap:8px;">
+          <input id="echk-new" type="text" placeholder="Yeni alt görev yaz... (örn: Delilleri topla)" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}">
+          <button class="btn btn-ghost btn-sm" onclick="addChecklistItem()">➕ Ekle</button>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeEdit()">İptal</button>
@@ -941,7 +971,7 @@ const COLORS=['#5b8af0','#4caf7d','#d4883a','#c05b9e','#e84d4d','#17b8a6','#f5a6
 const LS_KEY='lexis_fb_v1';
 
 // ── STATE ──
-let wsId='av_merveyucell_gmail_com',fbEmail='',users=[],tasks=[],digerIsler=[],settings={crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},cu=null,tab='mine',filt='hepsi',srch='',eid=null,deid=null;
+let wsId='av_merveyucell_gmail_com',fbEmail='',users=[],tasks=[],digerIsler=[],settings={crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},cu=null,tab='mine',filt='hepsi',srch='',eid=null,deid=null,eChecklist=[];
 let allPersonFilter=-1,dateRange='tumu',dateRangeStart='',dateRangeEnd='';
 let globalSearch='';
 let syncTimer=null;
@@ -1319,6 +1349,13 @@ function sbadge(d,done,pend,rejected){
 function fmt(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}.${m}.${y}`;}
 function prio(p){const l={acil:'Acil',yuksek:'Yüksek',orta:'Orta',dusuk:'Düşük'};return`<div class="prio"><div class="pd ${p}"></div>${l[p]||p}</div>`;}
 function uchip(i){const u=users[i];if(!u)return'—';return`<div class="uc"><div class="ucd" style="background:${COLORS[i%COLORS.length]}33;color:${COLORS[i%COLORS.length]}">${(u.name||'?')[0]}</div><span>${u.name}</span></div>`;}
+function chkBadge(item){
+  if(!item.checklist||!item.checklist.length)return'';
+  const done=item.checklist.filter(c=>c.done).length;
+  const tot=item.checklist.length;
+  const allDone=done===tot;
+  return`<span style="margin-left:5px;font-size:10px;background:${allDone?'var(--green-dim)':'var(--gold-dim)'};color:${allDone?'var(--green)':'var(--gold)'};padding:1px 7px;border-radius:10px;white-space:nowrap;font-weight:600;">✓ ${done}/${tot}</span>`;
+}
 function today(){return new Date().toISOString().split('T')[0];}
 
 // ── TABS ──
@@ -1365,6 +1402,19 @@ function renderTabs(){
 }
 
 // ── MOBILE MENU ──
+function toggleSystemMenu(e){
+  if(e)e.stopPropagation();
+  const m=document.getElementById('tb-dropdown-menu');
+  if(m)m.classList.toggle('open');
+}
+function closeSystemMenu(){
+  const m=document.getElementById('tb-dropdown-menu');
+  if(m)m.classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  const dd=document.getElementById('tb-dropdown');
+  if(dd&&!dd.contains(e.target))closeSystemMenu();
+});
 function toggleMobileMenu(){
   const menu=document.getElementById('mobile-menu');
   const overlay=document.getElementById('mobile-menu-overlay');
@@ -1469,7 +1519,7 @@ function statsOf(arr){
   const a=arr.filter(t=>!t.done&&!t.pending);
   return{g:a.filter(t=>diff(t.teslim_tarihi)<0).length,y:a.filter(t=>{const d=diff(t.teslim_tarihi);return d>=0&&d<=7;}).length,a:a.length,t:arr.filter(t=>t.done).length};
 }
-function statsHtml(s){return`<div class="stats-row">
+function statsHtml(s){return`<div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
   <div class="stat-card"><div class="stat-icon">🔴</div><div><div class="snum">${s.g}</div><div class="slbl">Geçmiş</div></div></div>
   <div class="stat-card"><div class="stat-icon">🟡</div><div><div class="snum">${s.y}</div><div class="slbl">Bu Hafta</div></div></div>
   <div class="stat-card"><div class="stat-icon">📋</div><div><div class="snum">${s.a}</div><div class="slbl">Aktif</div></div></div>
@@ -1585,7 +1635,7 @@ function renderMine(){
           return`<tr class="${item.done?'done-row':''}">
             <td><span style="font-size:11px;background:rgba(91,138,240,.12);color:#5b8af0;padding:2px 7px;border-radius:20px;">⚖️ Dava</span></td>
             <td>${sbadge(d,item.done,item.pending)}</td>
-            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}</td>
+            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}${chkBadge(item)}</td>
             <td style="font-size:12px;color:var(--text-mid)">${item.dosya_no||'—'}</td>
             <td style="font-size:12px">${fmt(item.teslim_tarihi)}</td>
             <td>${prio(item.oncelik)}</td>
@@ -1696,7 +1746,7 @@ function renderAll(){
           return`<tr class="${item.done?'done-row':''}">
             <td><span style="font-size:11px;background:rgba(91,138,240,.12);color:#5b8af0;padding:2px 7px;border-radius:20px;">⚖️ Dava</span></td>
             <td>${sbadge(d,item.done,item.pending)}</td>
-            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}</td>
+            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}${chkBadge(item)}</td>
             <td style="font-size:12px;color:var(--text-mid)">${item.dosya_no?item.dosya_no:'—'}<br><span style="font-size:11px;max-width:120px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.tur||''}">${item.tur||''}</span></td>
             <td style="font-size:12px">${fmt(item.teslim_tarihi)}</td>
             <td>${uchip(item.atanan)}</td>
@@ -2048,9 +2098,31 @@ function openEdit(id){
   document.getElementById('elink').value=t.link||'';
   document.getElementById('erec').innerHTML=RECURRENCE_OPTIONS.map(o=>`<option value="${o.id}" ${o.id===(t.recurrence||'none')?'selected':''}>${o.l}</option>`).join('');
   document.getElementById('evis').innerHTML=visCheckboxHtml('evis',t.visList||[]);
+  eChecklist=JSON.parse(JSON.stringify(t.checklist||[]));
+  renderEChecklist();
   document.getElementById('edit-modal').classList.add('open');
 }
-function closeEdit(){document.getElementById('edit-modal').classList.remove('open');eid=null;}
+function closeEdit(){document.getElementById('edit-modal').classList.remove('open');eid=null;eChecklist=[];}
+function renderEChecklist(){
+  const box=document.getElementById('echk-list');if(!box)return;
+  box.innerHTML=eChecklist.length?eChecklist.map((c,i)=>`
+    <div class="echk-row ${c.done?'done':''}">
+      <div class="echk-check ${c.done?'on':''}" onclick="toggleChecklistItem(${i})">${c.done?'✓':''}</div>
+      <div class="echk-text">${c.text}</div>
+      <button class="echk-del" onclick="removeChecklistItem(${i})" title="Sil">✕</button>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text-dim);padding:4px 0;">Henüz alt görev eklenmedi.</div>';
+}
+function addChecklistItem(){
+  const inp=document.getElementById('echk-new');
+  const v=(inp.value||'').trim();
+  if(!v)return;
+  eChecklist.push({text:v,done:false});
+  inp.value='';
+  renderEChecklist();
+  inp.focus();
+}
+function toggleChecklistItem(i){eChecklist[i].done=!eChecklist[i].done;renderEChecklist();}
+function removeChecklistItem(i){eChecklist.splice(i,1);renderEChecklist();}
 async function saveEdit(){
   const t=tasks.find(x=>x.id===eid);if(!t)return;
   t.mahkeme=document.getElementById('ei').value.trim();
@@ -2064,6 +2136,7 @@ async function saveEdit(){
   t.link=document.getElementById('elink').value.trim();
   t.recurrence=document.getElementById('erec').value||'none';
   t.visList=getVisSelected('evis');
+  t.checklist=eChecklist;
   t.history=t.history||[];t.history.push({action:'Düzenlendi',user:cu.name,date:new Date().toISOString()});
   logActivity('Düzenlendi',t.mahkeme,'dava',t.mahkeme);
   showLoading('Kaydediliyor...');await pushData();hideLoading();closeEdit();renderContent();toast('💾 Güncellendi');
@@ -2547,8 +2620,8 @@ function renderDashboard(){
     </div>`;
   };
 
-  const progressBar=(rate,color)=>`<div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px;">
-    <div style="height:100%;width:${rate}%;background:${color||'var(--green)'};border-radius:3px;transition:width .5s;"></div>
+  const progressBar=(rate,color)=>`<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:6px;">
+    <div style="height:100%;width:${rate}%;background:${color||'var(--green)'};border-radius:2px;transition:width .5s;"></div>
   </div>`;
 
   return`
