@@ -131,6 +131,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* ── DOSYA GROUP ── */
 .dosya-group{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:36px 20px;}
+.empty-state .es-icon{width:52px;height:52px;border-radius:50%;background:var(--gold-dim);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 14px;}
+.empty-state.es-good .es-icon{background:var(--green-dim);color:var(--green);}
+.empty-state .es-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.empty-state .es-sub{font-size:12px;color:var(--text-mid);max-width:280px;margin:0 auto;line-height:1.5;}
 .dosya-group:hover{border-color:var(--border2);}
 .dosya-header{padding:12px 16px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:10px;}
 .dosya-header:hover{background:var(--surface);}
@@ -233,14 +239,18 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:border-color .15s;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .18s;box-shadow:0 2px 10px rgba(0,0,0,.18);}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.28);}
+body.light-theme .stat-card{box-shadow:0 1px 6px rgba(0,0,0,.06);}
+body.light-theme .stat-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.10);}
 .stat-card:hover{border-color:var(--border2);}
 .stat-icon{font-size:20px;}
 .snum{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;line-height:1;}
 .slbl{font-size:10px;color:var(--text-mid);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
 
 /* PANEL */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;transition:border-color .15s;}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;transition:all .15s;box-shadow:0 2px 12px rgba(0,0,0,.16);}
+body.light-theme .panel{box-shadow:0 1px 8px rgba(0,0,0,.05);}
 .panel:hover{border-color:var(--border2);}
 .ph{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
 .ph-title{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);}
@@ -296,7 +306,8 @@ tr.done-row td{opacity:.35;}
 
 /* WORKLOAD */
 .wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px;}
-.wcard{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.wcard{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.14);}
+body.light-theme .wcard{box-shadow:0 1px 6px rgba(0,0,0,.05);}
 .wcard-h{display:flex;align-items:center;gap:10px;margin-bottom:13px;}
 .wcard-nm{font-weight:600;font-size:14px;}
 .wcard-rl{font-size:10px;color:var(--text-mid);text-transform:uppercase;}
@@ -1601,7 +1612,7 @@ function renderMine(){
             </div></td></tr>`;
         }
       }).join('')+`</tbody></table>`
-    :'<div style="text-align:center;padding:40px;color:var(--text-dim)">Henüz iş yok</div>';
+    :'<div class="empty-state"><div class="es-icon">📋</div><div class="es-title">Henüz iş yok</div><div class="es-sub">Yeni bir iş eklediğinizde burada listelenecek.</div></div>';
 
   const digerAdd=`<div class="panel" style="margin-top:18px;">
     <div class="ph"><div class="ph-title">➕ Yeni Diğer İş Ekle</div></div>
@@ -1933,7 +1944,7 @@ function renderApprovals(){
 
   return`<div class="panel" style="margin-bottom:18px">
     <div class="ph"><div class="ph-title">⏳ Onay Bekleyenler (${pendCount})</div></div>
-    <div class="ap-list">${allPend||'<div style="text-align:center;padding:28px;color:var(--text-dim)">✅ Onay bekleyen iş yok</div>'}</div>
+    <div class="ap-list">${allPend||'<div class="empty-state es-good"><div class="es-icon">✓</div><div class="es-title">Onay bekleyen iş yok</div><div class="es-sub">Tüm işler değerlendirildi.</div></div>'}</div>
   </div>
   <div class="panel" style="margin-bottom:18px">
     <div class="ph"><div class="ph-title">✅ Tamamlanan Dava İşleri (${doneTasks.length})</div></div>
@@ -2554,13 +2565,13 @@ function renderDashboard(){
     <div class="panel">
       <div class="ph"><div class="ph-title">🔴 Geçmiş İşler (${overdue.length})</div><button class="btn-pdf" onclick="exportOverduePDF()" style="font-size:11px;padding:4px 10px;">📄 Rapor</button></div>
       <div style="max-height:280px;overflow-y:auto;">
-        ${overdue.length?overdue.map(itemRow).join(''):'<div style="text-align:center;padding:24px;color:var(--text-dim)">✅ Geçmiş iş yok</div>'}
+        ${overdue.length?overdue.map(itemRow).join(''):'<div class="empty-state es-good"><div class="es-icon">✓</div><div class="es-title">Gecikmiş iş bulunmuyor</div><div class="es-sub">Şu anda süresi geçmiş herhangi bir dosya yok.</div></div>'}
       </div>
     </div>
     <div class="panel">
       <div class="ph"><div class="ph-title">⚡ Yaklaşan İşler (${soon.length+today.length})</div></div>
       <div style="max-height:280px;overflow-y:auto;">
-        ${[...today,...soon].length?[...today,...soon].map(itemRow).join(''):'<div style="text-align:center;padding:24px;color:var(--text-dim)">Yaklaşan iş yok</div>'}
+        ${[...today,...soon].length?[...today,...soon].map(itemRow).join(''):'<div class="empty-state"><div class="es-icon">📅</div><div class="es-title">Yaklaşan iş yok</div><div class="es-sub">Önümüzdeki günler için planlanmış bir teslim tarihi bulunmuyor.</div></div>'}
       </div>
     </div>
   </div>
@@ -3063,7 +3074,7 @@ function showCalDay(btn){
         '<div style="font-size:12px;color:var(--text-mid);">'+(x._tip==='dava'?(x.dosya_no?x.dosya_no+' · ':'')+(x.tur||''):(x.tur||''))+(x.not?'<br>'+x.not:'')+'</div>'+
         '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'+sbadge(diff(x.teslim_tarihi),x.done,x.pending,x.rejected)+' '+prio(x.oncelik)+' '+uchip(x.atanan)+'</div>'+
       '</div>').join('')
-    :'<p style="color:var(--text-dim);text-align:center;padding:20px;">Bu günde iş yok</p>';
+    :'<div class="empty-state"><div class="es-icon">📅</div><div class="es-title">Bu günde iş yok</div></div>';
   document.getElementById('calday-modal').classList.add('open');
 }
 
@@ -3434,7 +3445,7 @@ function renderDosyalar(){
       </div>
       <div class="dosya-body" style="display:${activeTasks>0?'block':'none'}">
         ${taskRows}${digerRows}
-        ${!taskRows&&!digerRows?'<div style="padding:16px;text-align:center;color:var(--text-dim);font-size:13px;">Bu dosyada iş yok</div>':''}
+        ${!taskRows&&!digerRows?'<div class="empty-state" style="padding:20px;"><div class="es-title" style="margin:0;">Bu dosyada iş yok</div></div>':''}
       </div>
     </div>`;
   }).join('');
