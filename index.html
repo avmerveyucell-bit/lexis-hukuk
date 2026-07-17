@@ -1574,6 +1574,10 @@ function addFormHtml(admin){
       <div class="fg"><label>Notlar</label><input id="fn" type="text" placeholder="Ek açıklama..."></div>
       <div class="fg" style="flex-direction:row;align-items:flex-end;"><button class="btn btn-gold" onclick="addT(true)">➕ Ekle</button></div>
     </div>
+    <div class="fg efull" style="margin-top:10px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="f-hide-toggle" onchange="document.getElementById('f-vis-box').style.display=this.checked?'flex':'none'" style="width:14px;height:14px;accent-color:var(--gold);">🔒 Bu işi gizle (seçmezsen herkes görür)</label>
+      <div id="f-vis-box" style="display:none;flex-wrap:wrap;gap:8px;padding:8px 0;">${visCheckboxHtml('fvis',[])}</div>
+    </div>
   </div>`;
 }
 
@@ -1681,6 +1685,10 @@ function renderMine(){
       <div class="fg"><label>Onay</label><input id="mdfo" type="text" placeholder="Onay veren..."></div>
       <div class="fg"><label>Notlar</label><input id="mdfn" type="text" placeholder="Açıklama..."></div>
       <div class="fg" style="flex-direction:row;align-items:flex-end;"><button class="btn btn-gold" onclick="addDigerMine()">➕ Ekle</button></div>
+    </div>
+    <div class="fg efull" style="margin-top:10px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="mdhide-toggle" onchange="document.getElementById('mdvis-box').style.display=this.checked?'flex':'none'" style="width:14px;height:14px;accent-color:var(--gold);">🔒 Bu işi gizle (seçmezsen herkes görür)</label>
+      <div id="mdvis-box" style="display:none;flex-wrap:wrap;gap:8px;padding:8px 0;">${visCheckboxHtml('mdvis',[])}</div>
     </div>
   </div>`;
 
@@ -1881,6 +1889,10 @@ function addDigerFormHtml(){
       <div class="fg"><label>Notlar</label><input id="all-dfn" type="text" placeholder="Açıklama..."></div>
       <div class="fg" style="flex-direction:row;align-items:flex-end;"><button class="btn btn-gold" onclick="addDigerFromAll()">➕ Ekle</button></div>
     </div>
+    <div class="fg efull" style="margin-top:10px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="all-dhide-toggle" onchange="document.getElementById('all-dvis-box').style.display=this.checked?'flex':'none'" style="width:14px;height:14px;accent-color:var(--gold);">🔒 Bu işi gizle (seçmezsen herkes görür)</label>
+      <div id="all-dvis-box" style="display:none;flex-wrap:wrap;gap:8px;padding:8px 0;">${visCheckboxHtml('alldvis',[])}</div>
+    </div>
   </div>`;
 }
 
@@ -1889,7 +1901,8 @@ async function addDigerFromAll(){
   const teslim=document.getElementById('all-dfd')?.value;
   if(!isim||!teslim){toast('⚠️ İş adı ve teslim tarihi zorunludur!');return;}
   const at=parseInt(document.getElementById('all-dfa')?.value??cu.idx);
-  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('all-dft')?.value||'',oncelik:document.getElementById('all-dfp')?.value||'orta',gelis_tarihi:document.getElementById('all-dfg')?.value||'',teslim_tarihi:teslim,atanan:at,onay:(document.getElementById('all-dfo')?.value||'').trim(),not:(document.getElementById('all-dfn')?.value||'').trim(),done:false,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]});
+  const visSel=document.getElementById('all-dhide-toggle')?.checked?getVisSelected('alldvis'):[];
+  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('all-dft')?.value||'',oncelik:document.getElementById('all-dfp')?.value||'orta',gelis_tarihi:document.getElementById('all-dfg')?.value||'',teslim_tarihi:teslim,atanan:at,visList:visSel,onay:(document.getElementById('all-dfo')?.value||'').trim(),not:(document.getElementById('all-dfn')?.value||'').trim(),done:false,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]});
   logActivity('Diğer iş eklendi',isim,'diger',isim);
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('✅ '+users[at].name+' için diğer iş eklendi');
 }
@@ -2016,7 +2029,8 @@ async function addT(admin){
   if(!mah||!tes){toast('⚠️ Mahkeme/kurum ve teslim tarihi zorunludur!');return;}
   const at=admin?parseInt(document.getElementById('fa')?.value||'0'):cu.idx;
   const rec=document.getElementById('frec')?.value||'none';
-  const newTask={id:Date.now(),mahkeme:mah,dosya_no:(document.getElementById('fdn')?.value||'').trim(),tur:document.getElementById('ft')?.value||'',tebligat_tarihi:document.getElementById('fteb')?.value||'',teslim_tarihi:tes,oncelik:document.getElementById('fp')?.value||'orta',not:(document.getElementById('fn')?.value||'').trim(),atanan:at,done:false,pending:false,recurrence:rec,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]};
+  const visSel=document.getElementById('f-hide-toggle')?.checked?getVisSelected('fvis'):[];
+  const newTask={id:Date.now(),mahkeme:mah,dosya_no:(document.getElementById('fdn')?.value||'').trim(),tur:document.getElementById('ft')?.value||'',tebligat_tarihi:document.getElementById('fteb')?.value||'',teslim_tarihi:tes,oncelik:document.getElementById('fp')?.value||'orta',not:(document.getElementById('fn')?.value||'').trim(),atanan:at,visList:visSel,done:false,pending:false,recurrence:rec,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]};
   tasks.push(newTask);
   logActivity('Dava işi eklendi',mah,'dava',mah);
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast(`✅ ${users[at].name} için eklendi`);
@@ -2328,7 +2342,8 @@ async function addDigerMine(){
   const teslim=document.getElementById('mdfd')?.value;
   if(!isim||!teslim){toast('⚠️ İş adı ve teslim tarihi zorunludur!');return;}
   const at=parseInt(document.getElementById('mdfa')?.value??cu.idx);
-  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('mdft')?.value||'',oncelik:document.getElementById('mdfp')?.value||'orta',gelis_tarihi:document.getElementById('mdfg')?.value||'',teslim_tarihi:teslim,atanan:at,onay:(document.getElementById('mdfo')?.value||'').trim(),not:(document.getElementById('mdfn')?.value||'').trim(),done:false,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]});
+  const visSel=document.getElementById('mdhide-toggle')?.checked?getVisSelected('mdvis'):[];
+  digerIsler.push({id:Date.now(),isim,tur:document.getElementById('mdft')?.value||'',oncelik:document.getElementById('mdfp')?.value||'orta',gelis_tarihi:document.getElementById('mdfg')?.value||'',teslim_tarihi:teslim,atanan:at,visList:visSel,onay:(document.getElementById('mdfo')?.value||'').trim(),not:(document.getElementById('mdfn')?.value||'').trim(),done:false,history:[{action:'Oluşturuldu',user:cu.name,date:new Date().toISOString()}]});
   logActivity('Diğer iş eklendi',isim,'diger',isim);
   showLoading('Kaydediliyor...');await pushData();hideLoading();renderContent();toast('✅ '+users[at].name+' için diğer iş eklendi');
 }
@@ -2896,9 +2911,11 @@ function importExcel(){
         const ws=wb.Sheets[wb.SheetNames[0]];
         const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
         if(!rows.length){toast('⚠️ Excel dosyası boş görünüyor');return;}
-        const norm=s=>(s||'').toString().trim().toLowerCase()
+        const norm=s=>(s||'').toString().trim()
           .replace(/İ/g,'i').replace(/I/g,'i').replace(/ı/g,'i')
-          .replace(/ş/g,'s').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c');
+          .replace(/Ş/g,'s').replace(/ş/g,'s').replace(/Ğ/g,'g').replace(/ğ/g,'g')
+          .replace(/Ü/g,'u').replace(/ü/g,'u').replace(/Ö/g,'o').replace(/ö/g,'o')
+          .replace(/Ç/g,'c').replace(/ç/g,'c').toLowerCase();
         const plMap={'acil':'acil','yuksek':'yuksek','orta':'orta','dusuk':'dusuk'};
         const findCol=(row,names)=>{
           for(const k of Object.keys(row)){
