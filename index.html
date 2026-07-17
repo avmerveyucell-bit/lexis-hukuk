@@ -50,8 +50,8 @@ window._fbInit(_embeddedCfg);
 </script>
 <style>
 :root{
-  --bg:#0c0e16;--surface:#14172280;--surface2:#1a1e2d;
-  --border:#232840;--border2:#2e3452;
+  --bg:#16120c;--surface:#1c160f80;--surface2:#241c14;
+  --border:#332818;--border2:#4a3a22;
   --gold:#d4a843;--gold2:#efc25c;--gold-dim:rgba(212,168,67,0.10);
   --text:#ece6d6;--text-mid:#8e886e;--text-dim:#555040;
   --red:#e05656;--red-dim:rgba(224,86,86,0.10);
@@ -182,6 +182,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 /* ── LOGIN ── */
 #login-screen{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 30% 20%,rgba(201,168,76,0.07) 0%,transparent 60%),var(--bg);padding:32px;}
+body.wallpaper-active #login-screen{background:radial-gradient(ellipse at 30% 20%,rgba(201,168,76,0.10) 0%,transparent 60%),transparent;}
+body.wallpaper-active .content,body.wallpaper-active #app{background:transparent;}
 .login-logo{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:4px;text-align:center;}
 .login-sub{color:var(--text-mid);font-size:12px;text-align:center;margin-bottom:6px;letter-spacing:2px;text-transform:uppercase;}
 .login-ws{color:var(--text-dim);font-size:11px;text-align:center;margin-bottom:36px;}
@@ -904,6 +906,17 @@ body.light-theme .wcard{box-shadow:0 1px 6px rgba(0,0,0,.05);}
         </div>
       </div>
     </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+      <div style="font-size:14px;font-weight:500;margin-bottom:6px;">🖼️ Ekran Duvar Kağıdı</div>
+      <div style="font-size:12px;color:var(--text-mid);margin-bottom:10px;">Giriş ve ana ekranın arka planına bir görsel ekleyin (görselin herkese açık bir internet linki olması gerekir).</div>
+      <input type="text" class="sinput" id="setting-wallpaperUrl" placeholder="https://... (görsel linki)" style="width:100%;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <span style="font-size:12px;color:var(--text-mid);white-space:nowrap;">Karartma</span>
+        <input type="range" id="setting-wallpaperDim" min="0" max="90" value="70" step="5" style="flex:1;">
+        <span id="wallpaperDim-out" style="font-size:13px;font-weight:500;min-width:34px;text-align:center;color:var(--gold);">70%</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(217,79,79,.3);margin-top:6px;" onclick="document.getElementById('setting-wallpaperUrl').value='';document.getElementById('setting-wallpaperDim').value=70;document.getElementById('wallpaperDim-out').textContent='70%';">Duvar Kağıdını Kaldır</button>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="document.getElementById('settings-modal').classList.remove('open')">İptal</button>
       <button class="btn btn-gold" onclick="saveSettings()">💾 Kaydet</button>
@@ -1047,7 +1060,8 @@ async function fbLogin(){
     saveCreds();
     const data=await readBin();
     users=data.users||[];tasks=data.tasks||[];digerIsler=data.digerIsler||[];
-    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},data.settings||{});
+    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true,wallpaperUrl:'',wallpaperDim:70},data.settings||{});
+    applyWallpaper();
     hideLoading();
     document.getElementById('setup-wizard').style.display='none';
     renderLogin();
@@ -1139,7 +1153,8 @@ async function syncData(){
     users=data.users||users;
     tasks=data.tasks||tasks;
     digerIsler=data.digerIsler||digerIsler;
-    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},data.settings||{});
+    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true,wallpaperUrl:'',wallpaperDim:70},data.settings||{});
+    applyWallpaper();
     const el=document.getElementById('sync-indicator');
     if(el)el.innerHTML='<span class="sync-dot"></span>'+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
     return true;
@@ -1300,9 +1315,10 @@ async function submitPwdLogin(){
     if(!window._fbReady){window._fbInit(cfg);await new Promise(r=>setTimeout(r,800));}
     const data=await readBin();
     users=data.users||users;tasks=data.tasks||[];digerIsler=data.digerIsler||[];
-    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},data.settings||{});
+    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true,wallpaperUrl:'',wallpaperDim:70},data.settings||{});
     try{localStorage.setItem('lexis_users_cache',JSON.stringify(users));}catch(e){}
   }catch(e){console.warn('Veri yüklenemedi:',e);}
+  applyWallpaper();
   hideLoading();
   cu={...users[i],idx:i};
   document.getElementById('login-screen').style.display='none';
@@ -2191,6 +2207,10 @@ function openSettingsModal(){
   if(cb2){cb2.checked=settings.digerOnay!==false;updateToggle('digerOnay',cb2.checked);}
   const wd=document.getElementById('setting-warnDays');
   if(wd){wd.value=settings.warnDays||3;document.getElementById('warnDays-out').textContent=wd.value;}
+  const wu=document.getElementById('setting-wallpaperUrl');
+  if(wu)wu.value=settings.wallpaperUrl||'';
+  const wdm=document.getElementById('setting-wallpaperDim');
+  if(wdm){wdm.value=settings.wallpaperDim!=null?settings.wallpaperDim:70;document.getElementById('wallpaperDim-out').textContent=wdm.value+'%';}
   const du=document.getElementById('setting-delUser');
   if(du)du.innerHTML=users.map((u,i)=>`<option value="${i}">${u.name}</option>`).join('');
   document.getElementById('settings-modal').classList.add('open');
@@ -2203,12 +2223,16 @@ document.getElementById('setting-crossAssign').addEventListener('change',functio
 document.getElementById('setting-davaOnay').addEventListener('change',function(){updateToggle('davaOnay',this.checked);});
 document.getElementById('setting-digerOnay').addEventListener('change',function(){updateToggle('digerOnay',this.checked);});
 document.getElementById('setting-warnDays').addEventListener('input',function(){document.getElementById('warnDays-out').textContent=this.value;});
+document.getElementById('setting-wallpaperDim').addEventListener('input',function(){document.getElementById('wallpaperDim-out').textContent=this.value+'%';});
 async function saveSettings(){
   settings.crossAssign=document.getElementById('setting-crossAssign').checked;
   settings.davaOnay=document.getElementById('setting-davaOnay').checked;
   settings.digerOnay=document.getElementById('setting-digerOnay').checked;
   settings.warnDays=parseInt(document.getElementById('setting-warnDays').value)||3;
+  settings.wallpaperUrl=(document.getElementById('setting-wallpaperUrl').value||'').trim();
+  settings.wallpaperDim=parseInt(document.getElementById('setting-wallpaperDim').value)||70;
   showLoading('Ayarlar kaydediliyor...');await pushData();hideLoading();
+  applyWallpaper();
   document.getElementById('settings-modal').classList.remove('open');
   renderContent();renderTabs();
   toast('✅ Ayarlar kaydedildi');
@@ -2335,6 +2359,17 @@ function loadSavedTheme(){
 
 function applyTheme(){}
 function applyThemePreset(){}
+function applyWallpaper(){
+  const url=(settings&&settings.wallpaperUrl||'').trim();
+  if(!url){document.body.style.backgroundImage='';document.body.style.backgroundAttachment='';document.body.style.backgroundSize='';document.body.style.backgroundPosition='';document.body.style.backgroundRepeat='';document.body.classList.remove('wallpaper-active');return;}
+  const dim=(settings.wallpaperDim!=null?settings.wallpaperDim:70)/100;
+  document.body.style.backgroundImage=`linear-gradient(rgba(18,14,9,${dim}),rgba(18,14,9,${dim})), url('${url}')`;
+  document.body.style.backgroundSize='cover';
+  document.body.style.backgroundPosition='center';
+  document.body.style.backgroundAttachment='fixed';
+  document.body.style.backgroundRepeat='no-repeat';
+  document.body.classList.add('wallpaper-active');
+}
 // ── DİĞER İŞLER ──
 const DIGER_TYPES=['İhtarname Cevabı','İcra Takibi Başlatma','Dava Açma','Konu Araştırma','Sözleşme Hazırlama','Dilekçe Yazma','Müvekkil Görüşmesi','Belge Hazırlama','Arabuluculuk Başvurusu','Resmi Yazışma','Diğer'];
 
@@ -3048,8 +3083,9 @@ function importJSON(){
           if(data.users&&Array.isArray(data.users))users=data.users;
           if(data.digerIsler&&Array.isArray(data.digerIsler))digerIsler=data.digerIsler;
           else digerIsler=[];
-          if(data.settings)settings=Object.assign({crossAssign:false},data.settings);
+          if(data.settings)settings=Object.assign({crossAssign:false,wallpaperUrl:'',wallpaperDim:70},data.settings);
           showLoading('Geri yükleniyor...');await pushData();hideLoading();
+          applyWallpaper();
           if(cu)renderContent();renderLogin();
           toast('✅ '+tasks.length+' dava, '+digerIsler.length+' diğer iş geri yüklendi!');
         }else toast('⚠️ Geçersiz dosya — tasks alanı bulunamadı');
@@ -3576,8 +3612,9 @@ async function startApp(){
   try{
     const data=await readBin();
     users=data.users||[];tasks=data.tasks||[];digerIsler=data.digerIsler||[];
-    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true},data.settings||{});
+    settings=Object.assign({crossAssign:false,warnDays:3,digerOnay:true,davaOnay:true,wallpaperUrl:'',wallpaperDim:70},data.settings||{});
     try{localStorage.setItem('lexis_users_cache',JSON.stringify(users));}catch(e){}
+    applyWallpaper();
     hideLoading();
     renderLogin();
   }catch(e){
