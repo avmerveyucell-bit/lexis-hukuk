@@ -773,6 +773,7 @@ body.light-theme .wcard{box-shadow:0 1px 6px rgba(0,0,0,.05);}
   </div>
 </div>
 
+<datalist id="ttypes-list"></datalist>
 <!-- Edit Task Modal -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal" style="width:520px;">
@@ -780,7 +781,7 @@ body.light-theme .wcard{box-shadow:0 1px 6px rgba(0,0,0,.05);}
     <div class="egrid">
       <div class="fg efull"><label>Mahkeme / Kurum *</label><input id="ei" type="text"></div>
       <div class="fg"><label>Dosya Numarası</label><input id="edn" type="text"></div>
-      <div class="fg"><label>İşlem Türü</label><select id="et"></select></div>
+      <div class="fg"><label>İşlem Türü</label><input id="et" type="text" list="ttypes-list" placeholder="Yazın veya listeden seçin"></div>
       <div class="fg"><label>Tebligat Tarihi</label><input id="eteb" type="date"></div>
       <div class="fg"><label>Teslim Tarihi *</label><input id="etes" type="date"></div>
       <div class="fg"><label>Öncelik</label><select id="ep"><option value="acil">🔴 Acil</option><option value="yuksek">🟠 Yüksek</option><option value="orta">🟡 Orta</option><option value="dusuk">🟢 Düşük</option></select></div>
@@ -967,6 +968,8 @@ body.light-theme .wcard{box-shadow:0 1px 6px rgba(0,0,0,.05);}
 <script>
 // ── CONSTANTS ──
 const TTYPES=['Adli Yardım Talebi','Adli Yardım Talebinin Reddine İtiraz Dilekçesi','Anayasa\'ya Aykırılık Başvuru Dilekçesi','Anayasa\'ya Aykırılık Başvurusu Cevap Dilekçesi','Arabuluculuk Konusunda Tarafların Anlaşmaya Vardığına Dair Dilekçe','Beyan Dilekçesi','Bilirkişi İtiraz Dilekçesi','Bilirkişi Raporuna İtiraz Dilekçesi','Bilirkişi Raporuna Karşı Beyan Dilekçesi','Cevaba Cevap Dilekçesi','Cevap Dilekçesi','Dahili Davacı Dilekçesi','Dahili Davalı Dilekçesi','Dava Değeri Artırım Dilekçesi (Belirsiz Alacak Davasında)','Dava Dilekçesi','Değişik İş Başvuru Dilekçesi','Değişik İş İtiraz Dilekçesi','Delil Dilekçesi','Dosyanın Yeniden İşleme Konulması Dilekçesi','Eski Hale Getirme Dilekçesi','Feragat Dilekçesi','Görevsizlik/Yetkisizlik Kararı Üzerine Dosyanın Gönderilmesi İstemi Dilekçesi','Hükmün Tamamlanması Dilekçesi','Islah Dilekçesi','İhbar Dilekçesi','İhtarname','İkinci Cevap Dilekçesi','İstinaf Başvuru Dilekçesi','İstinaf Başvuru Dilekçesi (Ek Karar)','İstinaf Başvuru Dilekçesi (Süre Tutum Sonrası)','İstinaf Reddinin İstinafı','İstinafa Cevap Dilekçesi','İstinaftan Feragat Dilekçesi','İstinaftan Vazgeçme Dilekçesi (İstinaf Sonrası)','İtiraz Başvuru Dilekçesi','Kabul Dilekçesi','Kanun Yararına Temyiz Dilekçesi','Kanun Yolu Değerlendirme İtiraz Dilekçesi','Karar Düzeltme Dilekçesi','Karşı Dava Dilekçesi','Katılma Yoluyla İstinaf Dilekçesi','Katılma Yoluyla Temyiz Dilekçesi','Kısmi Feragat Dilekçesi','Kira Sözleşmesi','Mazeret Dilekçesi','Merci Tayini Dilekçesi','Müdahale Dilekçesi','Reddi Hakim Talep Dilekçesi','Satış Talebi Dilekçesi','Sulh Dilekçesi','Süre Tutum Dilekçesi (İstinaf)','Süre Tutum Dilekçesi (Temyiz)','Süre Uzatım Dilekçesi','Şikayet Başvuru Dilekçesi','Talep Evrakı','Tanık Bildirim Dilekçesi','Tanıklıktan Çekilme Dilekçesi','Taraf İçin Dosyanın Yeniden İşleme Konulması Dilekçesi','Tashih Dilekçesi','Tavzih Dilekçesi','Tefrik Dilekçesi','Tehir-i İcra Talep Dilekçesi','Temyiz Başvuru Dilekçesi','Temyiz Başvuru Dilekçesi (Ek Karar)','Temyiz Başvuru Dilekçesi (Süre Tutum Sonrası)','Temyizden Feragat Dilekçesi','Temyizden Vazgeçme Dilekçesi (Temyiz Sonrası)','Temyize Cevap Dilekçesi','Temyizin Reddinin Temyizi Dilekçesi','Tereke Mirasçı Dilekçesi','Vekaletname','Vekaletname Yetki Belgesi','Vekillikten Çekilme Dilekçesi','Yargılamanın Yenilenmesi Başvuru Dilekçesi','Yetki İtirazı Dilekçesi','Yönlendirme Dilekçesi'];
+document.addEventListener('DOMContentLoaded',()=>{const dl=document.getElementById('ttypes-list');if(dl)dl.innerHTML=TTYPES.map(x=>`<option value="${x.replace(/"/g,'&quot;')}">`).join('');});
+if(document.readyState!=='loading'){const dl0=document.getElementById('ttypes-list');if(dl0)dl0.innerHTML=TTYPES.map(x=>`<option value="${x.replace(/"/g,'&quot;')}">`).join('');}
 const COLORS=['#5b8af0','#4caf7d','#d4883a','#c05b9e','#e84d4d','#17b8a6','#f5a623','#8b5cf6','#06b6d4','#84cc16'];
 const LS_KEY='lexis_fb_v1';
 
@@ -1560,7 +1563,7 @@ function addFormHtml(admin){
     <div class="add-form" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr">
       <div class="fg"><label>Mahkeme / Kurum *</label><input id="fi" type="text" placeholder="Örn: İstanbul 5. Aile Mahkemesi"></div>
       <div class="fg"><label>Dosya No</label><input id="fdn" type="text" placeholder="2024/1234"></div>
-      <div class="fg"><label>İşlem Türü</label><select id="ft">${TTYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
+      <div class="fg"><label>İşlem Türü</label><input id="ft" type="text" list="ttypes-list" placeholder="Yazın veya listeden seçin"></div>
       <div class="fg"><label>Öncelik</label><select id="fp"><option value="acil">🔴 Acil</option><option value="yuksek">🟠 Yüksek</option><option value="orta" selected>🟡 Orta</option><option value="dusuk">🟢 Düşük</option></select></div>
       ${asel}
     </div>
@@ -2089,7 +2092,7 @@ function openEdit(id){
   const t=tasks.find(x=>x.id===id);if(!t)return;eid=id;
   document.getElementById('ei').value=t.mahkeme||'';
   document.getElementById('edn').value=t.dosya_no||'';
-  document.getElementById('et').innerHTML=TTYPES.map(x=>`<option ${x===t.tur?'selected':''}>${x}</option>`).join('');
+  document.getElementById('et').value=t.tur||'';
   document.getElementById('eteb').value=t.tebligat_tarihi||'';
   document.getElementById('etes').value=t.teslim_tarihi||'';
   document.getElementById('ep').value=t.oncelik||'orta';
