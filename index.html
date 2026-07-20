@@ -1627,7 +1627,8 @@ function tblHtml(arr,showU){
         ${canResubmit?`<button class="btn btn-ghost btn-sm" onclick="resubmitT(${t.id})" style="color:var(--blue);border-color:rgba(91,138,240,.3)">📤 Tekrar Gönder</button>`:''}
         ${canAppr?`<button class="bappr" style="padding:4px 10px;font-size:11px;" onclick="approveT(${t.id})">✓</button>`:''}
         ${isAdmin()&&t.pending?`<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal(${t.id},'dava')">↩</button>`:''}
-        ${t.done?`<button class="btn btn-ghost btn-sm" onclick="undoneT(${t.id})" title="Tamamlandı işaretini geri al">↩</button>`:''}
+        ${t.done&&!isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="undoneT(${t.id})" title="Tamamlandı işaretini geri al">↩</button>`:''}
+        ${isAdmin()&&t.done?`<button class="btn btn-ghost btn-sm" onclick="openRejectModal(${t.id},'dava')" style="color:var(--red);border-color:rgba(217,79,79,.2)" title="Onayı geri al ve not ile arkadaşına gönder">↩ Onayı Geri Al</button>`:''}
         ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="openEdit(${t.id})">✏️</button>`:''}
         ${t.history&&t.history.length?`<button class="btn btn-ghost btn-sm" onclick="showItemHistory(${t.id},'dava')" title="Geçmiş">📜</button>`:''}
         ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="delT(${t.id})" style="color:var(--red);border-color:rgba(217,79,79,.2)">🗑</button>`:''}
@@ -1655,32 +1656,50 @@ function renderMine(){
       combined.map(item=>{
         const d=diff(item.teslim_tarihi);
         if(item._tip==='dava'){
-          const canDone=(isAdmin()||item.atanan===cu.idx)&&!item.done&&!item.pending;
+          const canDone=(isAdmin()||item.atanan===cu.idx)&&!item.done&&!item.pending&&!item.rejected;
+          const canRetract=!isAdmin()&&item.atanan===cu.idx&&item.pending&&!item.done;
+          const canResubmit=!isAdmin()&&item.atanan===cu.idx&&item.rejected&&!item.done&&!item.pending;
+          const canAppr=isAdmin()&&item.pending&&!item.done;
           return`<tr class="${item.done?'done-row':''}">
             <td><span style="font-size:11px;background:rgba(91,138,240,.12);color:#5b8af0;padding:2px 7px;border-radius:20px;">⚖️ Dava</span></td>
-            <td>${sbadge(d,item.done,item.pending)}</td>
-            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}${chkBadge(item)}</td>
-            <td style="font-size:12px;color:var(--text-mid)">${item.dosya_no||'—'}</td>
+            <td>${sbadge(d,item.done,item.pending,item.rejected)}</td>
+            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}${chkBadge(item)}
+              ${item.rejected&&item.rejectionNote?`<div style="margin-top:3px;font-size:11px;color:var(--red);background:var(--red-dim);padding:3px 8px;border-radius:5px;">📝 ${item.rejectionNote}</div>`:''}</td>
+            <td style="font-size:12px;color:var(--text-mid)">${item.dosya_no?item.dosya_no:'—'}<br><span style="font-size:11px;max-width:120px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.tur||''}">${item.tur||''}</span></td>
             <td style="font-size:12px">${fmt(item.teslim_tarihi)}</td>
             <td>${prio(item.oncelik)}</td>
             <td style="font-size:12px;color:var(--text-mid);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.not||''}">${item.not||'—'}</td>
-            <td><div style="display:flex;gap:4px;">
+            <td><div style="display:flex;gap:4px;flex-wrap:wrap;">
               ${canDone?`<button class="btn btn-ghost btn-sm" onclick="markDone(${item.id})" style="color:var(--green);border-color:rgba(76,175,125,.3)">✓ Tamam</button>`:''}
+              ${canRetract?`<button class="btn btn-ghost btn-sm" onclick="retractT(${item.id})" style="color:var(--orange);border-color:rgba(212,136,58,.3)">↩ Geri Çek</button>`:''}
+              ${canResubmit?`<button class="btn btn-ghost btn-sm" onclick="resubmitT(${item.id})" style="color:var(--blue);border-color:rgba(91,138,240,.3)">📤 Tekrar Gönder</button>`:''}
+              ${canAppr?`<button class="bappr" style="padding:4px 10px;font-size:11px;" onclick="approveT(${item.id})">✓</button>`:''}
+              ${isAdmin()&&item.pending?`<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal(${item.id},'dava')">↩ Reddet</button>`:''}
+              ${isAdmin()&&item.done?`<button class="btn btn-ghost btn-sm" onclick="openRejectModal(${item.id},'dava')" style="color:var(--red);border-color:rgba(217,79,79,.2)" title="Onayı geri al ve not ile arkadaşına gönder">↩ Onayı Geri Al</button>`:''}
               ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="openEdit(${item.id})">✏️</button>`:''}
               ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="delT(${item.id})" style="color:var(--red)">🗑</button>`:''}
             </div></td></tr>`;
         } else {
+          const canDone=!item.done&&!item.pending&&!item.rejected&&(isAdmin()||item.atanan===cu.idx);
+          const canRetract=!isAdmin()&&item.atanan===cu.idx&&item.pending&&!item.done;
+          const canResubmit=!isAdmin()&&item.atanan===cu.idx&&item.rejected&&!item.done&&!item.pending;
+          const canAppr=isAdmin()&&item.pending&&!item.done;
           return`<tr class="${item.done?'done-row':''}">
             <td><span style="font-size:11px;background:var(--gold-dim);color:var(--gold);padding:2px 7px;border-radius:20px;">📝 Diğer</span></td>
-            <td>${sbadge(d,item.done,false)}</td>
-            <td><strong>${item.isim||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}</td>
+            <td>${sbadge(d,item.done,item.pending,item.rejected)}</td>
+            <td><strong>${item.isim||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}
+              ${item.rejected&&item.rejectionNote?`<div style="margin-top:3px;font-size:11px;color:var(--red);background:var(--red-dim);padding:3px 8px;border-radius:5px;">📝 ${item.rejectionNote}</div>`:''}</td>
             <td style="font-size:12px;color:var(--text-mid)">${item.tur||'—'}</td>
             <td style="font-size:12px">${fmt(item.teslim_tarihi)}</td>
             <td>${prio(item.oncelik)}</td>
             <td style="font-size:12px;color:var(--text-mid);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.not||''}">${item.not||'—'}</td>
-            <td><div style="display:flex;gap:4px;">
-              ${(!item.done&&!item.pending&&(isAdmin()||item.atanan===cu.idx))?`<button class="btn btn-ghost btn-sm" onclick="doneDiger(${item.id})" style="color:var(--green);border-color:rgba(76,175,125,.3)">✓ Tamam</button>`:''}
-              ${(item.pending&&!item.done)?`<span style="font-size:11px;color:var(--blue,#5b8af0)">⏳ Onay Bek.</span>`:''}
+            <td><div style="display:flex;gap:4px;flex-wrap:wrap;">
+              ${canDone?`<button class="btn btn-ghost btn-sm" onclick="doneDiger(${item.id})" style="color:var(--green);border-color:rgba(76,175,125,.3)">✓ Tamam</button>`:''}
+              ${canRetract?`<button class="btn btn-ghost btn-sm" onclick="retractDiger(${item.id})" style="color:var(--orange);border-color:rgba(212,136,58,.3)">↩ Geri Çek</button>`:''}
+              ${canResubmit?`<button class="btn btn-ghost btn-sm" onclick="resubmitDiger(${item.id})" style="color:var(--blue);border-color:rgba(91,138,240,.3)">📤 Tekrar Gönder</button>`:''}
+              ${canAppr?`<button class="bappr" style="padding:4px 10px;font-size:11px;" onclick="approveDiger(${item.id})">✓</button>`:''}
+              ${isAdmin()&&item.pending?`<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal(${item.id},'diger')">↩ Reddet</button>`:''}
+              ${isAdmin()&&item.done?`<button class="btn btn-ghost btn-sm" onclick="openRejectModal(${item.id},'diger')" style="color:var(--red);border-color:rgba(217,79,79,.2)" title="Onayı geri al ve not ile arkadaşına gönder">↩ Onayı Geri Al</button>`:''}
               <button class="btn btn-ghost btn-sm" onclick="openEditDiger(${item.id})">✏️</button>
               ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="delDiger(${item.id})" style="color:var(--red)">🗑</button>`:''}
             </div></td></tr>`;
@@ -1771,34 +1790,50 @@ function renderAll(){
         if(item._tip==='dava'){
           const canDone=(isAdmin()||item.atanan===cu.idx)&&!item.done&&!item.pending&&!item.rejected;
           const canAppr=isAdmin()&&item.pending&&!item.done;
+          const canRetract=!isAdmin()&&item.atanan===cu.idx&&item.pending&&!item.done;
+          const canResubmit=!isAdmin()&&item.atanan===cu.idx&&item.rejected&&!item.done&&!item.pending;
           return`<tr class="${item.done?'done-row':''}">
             <td><span style="font-size:11px;background:rgba(91,138,240,.12);color:#5b8af0;padding:2px 7px;border-radius:20px;">⚖️ Dava</span></td>
-            <td>${sbadge(d,item.done,item.pending)}</td>
-            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}${chkBadge(item)}</td>
+            <td>${sbadge(d,item.done,item.pending,item.rejected)}</td>
+            <td><strong>${item.mahkeme||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}${chkBadge(item)}
+              ${item.rejected&&item.rejectionNote?`<div style="margin-top:3px;font-size:11px;color:var(--red);background:var(--red-dim);padding:3px 8px;border-radius:5px;">📝 ${item.rejectionNote}</div>`:''}</td>
             <td style="font-size:12px;color:var(--text-mid)">${item.dosya_no?item.dosya_no:'—'}<br><span style="font-size:11px;max-width:120px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.tur||''}">${item.tur||''}</span></td>
             <td style="font-size:12px">${fmt(item.teslim_tarihi)}</td>
             <td>${uchip(item.atanan)}</td>
             <td>${prio(item.oncelik)}</td>
             <td style="font-size:12px;color:var(--text-mid);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.not||''}">${item.not||'—'}</td>
-            <td><div style="display:flex;gap:4px;">
+            <td><div style="display:flex;gap:4px;flex-wrap:wrap;">
               ${canDone?`<button class="btn btn-ghost btn-sm" onclick="markDone(${item.id})" style="color:var(--green);border-color:rgba(76,175,125,.3)">✓ Tamam</button>`:''}
+              ${canRetract?`<button class="btn btn-ghost btn-sm" onclick="retractT(${item.id})" style="color:var(--orange);border-color:rgba(212,136,58,.3)">↩ Geri Çek</button>`:''}
+              ${canResubmit?`<button class="btn btn-ghost btn-sm" onclick="resubmitT(${item.id})" style="color:var(--blue);border-color:rgba(91,138,240,.3)">📤 Tekrar Gönder</button>`:''}
               ${canAppr?`<button class="bappr" style="padding:4px 10px;font-size:11px;" onclick="approveT(${item.id})">✓</button>`:''}
+              ${isAdmin()&&item.pending?`<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal(${item.id},'dava')">↩ Reddet</button>`:''}
+              ${isAdmin()&&item.done?`<button class="btn btn-ghost btn-sm" onclick="openRejectModal(${item.id},'dava')" style="color:var(--red);border-color:rgba(217,79,79,.2)" title="Onayı geri al ve not ile arkadaşına gönder">↩ Onayı Geri Al</button>`:''}
               ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="openEdit(${item.id})">✏️</button>`:''}
               ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="delT(${item.id})" style="color:var(--red)">🗑</button>`:''}
             </div></td></tr>`;
         } else {
-          const canDone=!item.done&&(isAdmin()||item.atanan===cu.idx);
+          const canDone=!item.done&&!item.pending&&!item.rejected&&(isAdmin()||item.atanan===cu.idx);
+          const canAppr=isAdmin()&&item.pending&&!item.done;
+          const canRetract=!isAdmin()&&item.atanan===cu.idx&&item.pending&&!item.done;
+          const canResubmit=!isAdmin()&&item.atanan===cu.idx&&item.rejected&&!item.done&&!item.pending;
           return`<tr class="${item.done?'done-row':''}">
             <td><span style="font-size:11px;background:var(--gold-dim);color:var(--gold);padding:2px 7px;border-radius:20px;">📝 Diğer</span></td>
-            <td>${sbadge(d,item.done,false)}</td>
-            <td><strong>${item.isim||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}</td>
+            <td>${sbadge(d,item.done,item.pending,item.rejected)}</td>
+            <td><strong>${item.isim||'—'}</strong>${item.visList&&item.visList.length>0?'<span style="margin-left:4px;font-size:11px;color:var(--gold)">🔒</span>':''}
+              ${item.rejected&&item.rejectionNote?`<div style="margin-top:3px;font-size:11px;color:var(--red);background:var(--red-dim);padding:3px 8px;border-radius:5px;">📝 ${item.rejectionNote}</div>`:''}</td>
             <td style="font-size:12px;color:var(--text-mid)">${item.tur||'—'}</td>
             <td style="font-size:12px">${fmt(item.teslim_tarihi)}</td>
             <td>${uchip(item.atanan)}</td>
             <td>${prio(item.oncelik)}</td>
             <td style="font-size:12px;color:var(--text-mid);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.not||''}">${item.not||'—'}</td>
-            <td><div style="display:flex;gap:4px;">
+            <td><div style="display:flex;gap:4px;flex-wrap:wrap;">
               ${canDone?`<button class="btn btn-ghost btn-sm" onclick="doneDiger(${item.id})" style="color:var(--green);border-color:rgba(76,175,125,.3)">✓ Tamam</button>`:''}
+              ${canRetract?`<button class="btn btn-ghost btn-sm" onclick="retractDiger(${item.id})" style="color:var(--orange);border-color:rgba(212,136,58,.3)">↩ Geri Çek</button>`:''}
+              ${canResubmit?`<button class="btn btn-ghost btn-sm" onclick="resubmitDiger(${item.id})" style="color:var(--blue);border-color:rgba(91,138,240,.3)">📤 Tekrar Gönder</button>`:''}
+              ${canAppr?`<button class="bappr" style="padding:4px 10px;font-size:11px;" onclick="approveDiger(${item.id})">✓</button>`:''}
+              ${isAdmin()&&item.pending?`<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal(${item.id},'diger')">↩ Reddet</button>`:''}
+              ${isAdmin()&&item.done?`<button class="btn btn-ghost btn-sm" onclick="openRejectModal(${item.id},'diger')" style="color:var(--red);border-color:rgba(217,79,79,.2)" title="Onayı geri al ve not ile arkadaşına gönder">↩ Onayı Geri Al</button>`:''}
               ${isAdmin()||item.atanan===cu.idx?`<button class="btn btn-ghost btn-sm" onclick="openEditDiger(${item.id})">✏️</button>`:''}
               ${isAdmin()?`<button class="btn btn-ghost btn-sm" onclick="delDiger(${item.id})" style="color:var(--red)">🗑</button>`:''}
             </div></td></tr>`;
@@ -2080,12 +2115,14 @@ async function confirmReject(){
   if(!note){toast('⚠️ Lütfen düzeltme notu girin');return;}
   if(_rejectType==='dava'){
     const t=tasks.find(x=>x.id===_rejectId);if(!t)return;
-    t.pending=false;t.rejected=true;t.rejectionNote=note;
-    t.history=t.history||[];t.history.push({action:'Reddedildi: '+note,user:cu.name,date:new Date().toISOString()});
+    const wasDone=t.done;
+    t.pending=false;t.rejected=true;t.rejectionNote=note;t.done=false;
+    t.history=t.history||[];t.history.push({action:(wasDone?'Onay geri alındı ve reddedildi: ':'Reddedildi: ')+note,user:cu.name,date:new Date().toISOString()});
   } else {
     const d=digerIsler.find(x=>x.id===_rejectId);if(!d)return;
-    d.pending=false;d.rejected=true;d.rejectionNote=note;
-    d.history=d.history||[];d.history.push({action:'Reddedildi: '+note,user:cu.name,date:new Date().toISOString()});
+    const wasDone=d.done;
+    d.pending=false;d.rejected=true;d.rejectionNote=note;d.done=false;
+    d.history=d.history||[];d.history.push({action:(wasDone?'Onay geri alındı ve reddedildi: ':'Reddedildi: ')+note,user:cu.name,date:new Date().toISOString()});
   }
   showLoading('Kaydediliyor...');await pushData();hideLoading();closeRejectModal();renderContent();renderTabs();
   toast('↩ Reddedildi — kullanıcıya geri bildirim gönderildi');
@@ -2459,8 +2496,9 @@ function digerTblHtml(arr){
         (d.pending&&!d.done?'<span style="font-size:11px;color:var(--blue,#5b8af0)">⏳ Onay Bek.</span>':'')+
         (canRetract?'<button class="btn btn-ghost btn-sm" onclick="retractDiger('+d.id+')" style="color:var(--orange);border-color:rgba(212,136,58,.3)">↩ Geri Çek</button>':'')+
         (canResubmit?'<button class="btn btn-ghost btn-sm" onclick="resubmitDiger('+d.id+')" style="color:var(--blue);border-color:rgba(91,138,240,.3)">📤 Tekrar Gönder</button>':'')+
-        (d.done?'<button class="btn btn-ghost btn-sm" onclick="undoneDiger('+d.id+')">↩</button>':'')+
+        (d.done&&!isAdmin()?'<button class="btn btn-ghost btn-sm" onclick="undoneDiger('+d.id+')">↩</button>':'')+
         (isAdmin()&&d.pending?'<button class="brej" style="padding:4px 10px;font-size:11px;" onclick="openRejectModal('+d.id+',\'diger\')">↩ Not</button>':'')+
+        (isAdmin()&&d.done?'<button class="btn btn-ghost btn-sm" onclick="openRejectModal('+d.id+',\'diger\')" style="color:var(--red);border-color:rgba(217,79,79,.2)" title="Onayı geri al ve not ile arkadaşına gönder">↩ Onayı Geri Al</button>':'')+
         (isAdmin()||d.atanan===cu.idx?'<button class="btn btn-ghost btn-sm" onclick="openEditDiger('+d.id+')">✏️</button>':'')+
         (d.history&&d.history.length?'<button class="btn btn-ghost btn-sm" onclick="showItemHistory('+d.id+',\'diger\')" title="Geçmiş">📜</button>':'')+
         (isAdmin()?'<button class="btn btn-ghost btn-sm" onclick="delDiger('+d.id+')" style="color:var(--red);border-color:rgba(217,79,79,.2)">🗑</button>':'')+
